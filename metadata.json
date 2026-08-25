@@ -1,0 +1,6 @@
+{
+  "name": "СтройМенеджер",
+  "description": "Boshqarmalar va markaziy apparat uchun to'liq qurilish boshqaruv tizimi (Zayavkalar, Texnik hisobotlar, UMM/PMU mexanizmlari, Yuk xatlari, Omborlar, Hisob-fakturalar, Audit va Offline kesh)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
