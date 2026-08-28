@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "pmu_1",
+    "docNumber": "ПМУ-2026-005",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "constructionName": "Ферма стропильная металлическая ФС-18",
+    "qty": 12,
+    "unit": "шт",
+    "note": "По чертежам КМД лист 14",
+    "status": "glinj_so",
+    "uprSignedBy": "Махмудов Сардор (Гл.инж РМУ)",
+    "uprSignedAt": "2026-08-23T16:00:00.000Z",
+    "ptoSoSignedBy": "Рахимов Жасур (ПТО СО)",
+    "ptoSoSignedAt": "2026-08-24T10:30:00.000Z",
+    "createdAt": "2026-08-23T11:00:00.000Z",
+    "updatedAt": "2026-08-24T10:30:00.000Z"
+  }
+]

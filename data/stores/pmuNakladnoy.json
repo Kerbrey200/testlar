@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "pmunak_1",
+    "docNumber": "ПМУ-НАКЛ-081",
+    "pmuZayavkaId": "pmu_1",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "konstruktorId": "u_konstr",
+    "konstruktorName": "Зокиров Илхом (Конструктор ПМУ)",
+    "items": [
+      {
+        "id": "pitem_1",
+        "itemName": "Ферма стропильная ФС-18",
+        "unit": "шт",
+        "qty": 6,
+        "weightKg": 4200
+      },
+      {
+        "id": "pitem_2",
+        "itemName": "Связи вертикальные СВ-1",
+        "unit": "компл",
+        "qty": 4,
+        "weightKg": 850
+      }
+    ],
+    "status": "sent",
+    "sentAt": "2026-08-24T14:00:00.000Z"
+  }
+]

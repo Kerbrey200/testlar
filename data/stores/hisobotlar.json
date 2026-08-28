@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "id": "his_1",
+    "docNumber": "ОТЧ-2026-08/1",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "periodMonth": "2026-08",
+    "status": "pto",
+    "rows": [
+      {
+        "id": "row_1",
+        "materialId": "mat_1",
+        "materialName": "Арматура А500С d=12мм",
+        "unit": "тн",
+        "normQty": 18,
+        "factQty": 17.5,
+        "spisanieQty": 17.5,
+        "differenceQty": 0,
+        "price": 9200000,
+        "note": "Плита перекрытия 1 этажа"
+      },
+      {
+        "id": "row_2",
+        "materialId": "mat_4",
+        "materialName": "Бетон товарный М-350 (B25)",
+        "unit": "м3",
+        "normQty": 150,
+        "factQty": 148,
+        "spisanieQty": 148,
+        "differenceQty": 0,
+        "price": 780000,
+        "note": "Колонны и ригели"
+      },
+      {
+        "id": "row_3",
+        "materialId": "mat_6",
+        "materialName": "Кирпич жженый одинарный 1НФ",
+        "unit": "тыс.шт",
+        "normQty": 40,
+        "factQty": 39.2,
+        "spisanieQty": 40,
+        "differenceQty": 0.8,
+        "price": 1100000,
+        "note": "Внутренние перегородки"
+      }
+    ],
+    "prorabSignedAt": "2026-08-24T17:00:00.000Z",
+    "createdAt": "2026-08-24T17:00:00.000Z",
+    "updatedAt": "2026-08-24T17:00:00.000Z"
+  }
+]

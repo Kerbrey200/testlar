@@ -1,1 +1,114 @@
-[]
+[
+  {
+    "id": "zay_1",
+    "docNumber": "ЗАЯ-2026-001",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "status": "glinj_upr",
+    "positions": [
+      {
+        "id": "pos_1",
+        "materialId": "mat_1",
+        "materialName": "Арматура А500С d=12мм",
+        "unit": "тн",
+        "qty": 15,
+        "note": "Для фундаментной плиты"
+      },
+      {
+        "id": "pos_2",
+        "materialId": "mat_4",
+        "materialName": "Бетон товарный М-350 (B25)",
+        "unit": "м3",
+        "qty": 120,
+        "note": "Заливка 25 августа"
+      }
+    ],
+    "createdAt": "2026-08-24T08:30:00.000Z",
+    "updatedAt": "2026-08-24T08:30:00.000Z"
+  },
+  {
+    "id": "zay_2",
+    "docNumber": "ЗАЯ-2026-002",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "status": "pto_so",
+    "positions": [
+      {
+        "id": "pos_3",
+        "materialId": "mat_6",
+        "materialName": "Кирпич жженый одинарный 1НФ",
+        "unit": "тыс.шт",
+        "qty": 80,
+        "approvedQty": 80,
+        "ptoApproved": true,
+        "note": "Кладка 2-го этажа"
+      },
+      {
+        "id": "pos_4",
+        "materialId": "mat_5",
+        "materialName": "Цемент ПЦ 400-Д20",
+        "unit": "тн",
+        "qty": 25,
+        "approvedQty": 20,
+        "ptoApproved": true,
+        "ptoComment": "Скорректировано по нормам ПТО",
+        "note": "Кладочный раствор"
+      }
+    ],
+    "glinjUprSignedBy": "Махмудов Сардор (Гл.инж РМУ)",
+    "glinjUprSignedAt": "2026-08-24T11:00:00.000Z",
+    "createdAt": "2026-08-23T14:00:00.000Z",
+    "updatedAt": "2026-08-24T11:00:00.000Z"
+  },
+  {
+    "id": "zay_3",
+    "docNumber": "ЗАЯ-2026-003",
+    "org": "СМУ",
+    "objectId": "obj_2",
+    "objectName": "Бизнес-центр \"Ташкент Плаза\"",
+    "prorabId": "u_prorab2",
+    "prorabName": "Алиев Рустам",
+    "status": "snab_so",
+    "positions": [
+      {
+        "id": "pos_5",
+        "materialId": "mat_9",
+        "materialName": "Гипсокартон ГКЛ 12.5мм Кнауф",
+        "unit": "м2",
+        "qty": 450,
+        "approvedQty": 450,
+        "ptoApproved": true,
+        "note": "Перегородки 3-й этаж"
+      },
+      {
+        "id": "pos_6",
+        "materialId": "mat_10",
+        "materialName": "Профиль потолочный CD 60/27",
+        "unit": "м.п",
+        "qty": 900,
+        "approvedQty": 900,
+        "ptoApproved": true,
+        "note": "Монтаж каркаса"
+      }
+    ],
+    "glinjUprSignedBy": "Алиев Рустам (Нач. СМУ)",
+    "glinjUprSignedAt": "2026-08-22T09:00:00.000Z",
+    "ptoSoSignedBy": "Рахимов Жасур (ПТО СО)",
+    "ptoSoSignedAt": "2026-08-22T14:20:00.000Z",
+    "glinjSoSignedBy": "Юсупов Темур (Гл.инженер СО)",
+    "glinjSoSignedAt": "2026-08-23T10:15:00.000Z",
+    "contractNumber": "Д-78/26-КНАУФ",
+    "contractDate": "2026-08-24",
+    "invoiceNumber": "СФ-004419",
+    "snabSoSignedBy": "Саидов Бахтиёр (Снабжение СО)",
+    "snabSoSignedAt": "2026-08-24T16:00:00.000Z",
+    "createdAt": "2026-08-21T10:00:00.000Z",
+    "updatedAt": "2026-08-24T16:00:00.000Z"
+  }
+]

@@ -230,15 +230,14 @@ export default function App() {
   }, [currentUser, loadAllData]);
 
   // Login handler
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (username: string, password: string) => {
     setLoginError('');
     setIsLoggingIn(true);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: loginUsername.trim(), password: loginPassword }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -260,10 +259,16 @@ export default function App() {
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(loginUsername, loginPassword);
+  };
+
   // Quick Demo Login Preset selector
-  const handleQuickLogin = (uname: string, pword: string = '123456') => {
+  const handleQuickLogin = (uname: string, pword: string = '12345678') => {
     setLoginUsername(uname);
     setLoginPassword(pword);
+    performLogin(uname, pword);
   };
 
   const handleLogout = () => {
@@ -573,95 +578,103 @@ export default function App() {
 
             {/* Quick Login Presets to test all 16 roles immediately */}
             <div className="mt-6 pt-6 border-t border-slate-800">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">
-                Тезкор синов логинлари (Тест учун):
-              </span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Тезкор синов логинлари:
+                </span>
+                <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md font-bold">
+                  Парол: 12345678
+                </span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('admin', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-blue-400 hover:bg-slate-800 font-mono text-center font-bold"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-blue-400 hover:bg-slate-800 font-mono text-center font-bold transition"
                 >
                   admin (СО)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('prorab1', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   prorab1 (РМУ)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('prorab2', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   prorab2 (СМУ)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('glinj_rmu', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   glinj_rmu (РМУ)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('pto_so', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   pto_so (СО)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('glinj_so', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   glinj_so (СО)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('snab_so', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   snab_so (СО)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('pto_rmu', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   pto_rmu (РМУ)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('buh_so', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   buh_so (СО)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('glsklad', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   glsklad (ЦС)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('dispatcher', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   dispatcher (ПМУ)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('dispatcher_umm', '12345678')}
-                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center"
+                  className="rounded-lg bg-slate-800/80 px-2 py-1.5 text-slate-300 hover:bg-slate-800 font-mono text-center transition"
                 >
                   dispatcher_umm (УММ)
                 </button>
               </div>
+              <p className="mt-3 text-center text-[10px] text-slate-400">
+                💡 Тугмани босиш орқали тезкор киришингиз ёки логин ва паролни (<strong>12345678</strong>) қўлда киритишингиз мумкин.
+              </p>
             </div>
           </div>
         </div>

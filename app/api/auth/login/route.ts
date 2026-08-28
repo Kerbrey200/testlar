@@ -44,13 +44,22 @@ export async function POST(req: NextRequest) {
 
     const targetHash = user.parolHash || user.passwordHash;
     const computedHashWithPrefix = hashPasswordSync(cleanLogin, password);
+    const computedHashUserLogin = user.login ? hashPasswordSync(user.login.toLowerCase(), password) : '';
+    const computedHashUsername = user.username ? hashPasswordSync(user.username.toLowerCase(), password) : '';
 
-    // Also support fallback direct passwords / passwords created before
+    // Also support default passwords & plain password matches
     const isDefaultPassMatch = (password === '12345678' || password === '123456' || (cleanLogin === 'admin' && password === 'admin123'));
-    const isHashMatch = targetHash && (
-      computedHashWithPrefix === targetHash ||
-      (user.parolHash && computedHashWithPrefix === user.parolHash) ||
-      (user.passwordHash && computedHashWithPrefix === user.passwordHash)
+    const isHashMatch = (
+      (targetHash && (
+        computedHashWithPrefix === targetHash ||
+        computedHashUserLogin === targetHash ||
+        computedHashUsername === targetHash ||
+        targetHash === password
+      )) ||
+      (user.parolHash && (computedHashWithPrefix === user.parolHash || computedHashUserLogin === user.parolHash || user.parolHash === password)) ||
+      (user.passwordHash && (computedHashWithPrefix === user.passwordHash || computedHashUsername === user.passwordHash || user.passwordHash === password)) ||
+      ((user as any).parol && (user as any).parol === password) ||
+      ((user as any).password && (user as any).password === password)
     );
 
     if (!isHashMatch && !isDefaultPassMatch) {

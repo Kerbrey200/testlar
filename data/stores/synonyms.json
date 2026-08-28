@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "syn_1",
+    "vendorName": "Арматурный прокат 12 мм А500С ст3",
+    "standardMaterialId": "mat_1",
+    "standardMaterialName": "Арматура А500С d=12мм",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "syn_2",
+    "vendorName": "Бетонная смесь тяжелая В25 П4 F150 W6",
+    "standardMaterialId": "mat_4",
+    "standardMaterialName": "Бетон товарный М-350 (B25)",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "syn_3",
+    "vendorName": "Портландцемент М400 в мешках по 50кг",
+    "standardMaterialId": "mat_5",
+    "standardMaterialName": "Цемент ПЦ 400-Д20",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
+]

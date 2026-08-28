@@ -1,5 +1,49 @@
 [
   {
+    "action": "auth.login",
+    "userId": "u_glsklad",
+    "userLogin": "glsklad",
+    "userName": "Шарипов Шокир (Завскладом ЦС)",
+    "userRole": "glsklad",
+    "userOrg": "СО",
+    "details": "Тизимга муваффақиятли кирди",
+    "id": "act_1787931335117_t2s16",
+    "timestamp": "2026-08-28T15:35:35.117Z"
+  },
+  {
+    "action": "auth.login",
+    "userId": "u_pto_so",
+    "userLogin": "pto_so",
+    "userName": "Рахимов Жасур (ПТО СО)",
+    "userRole": "pto_so",
+    "userOrg": "СО",
+    "details": "Тизимга муваффақиятли кирди",
+    "id": "act_1787931335076_oerop",
+    "timestamp": "2026-08-28T15:35:35.076Z"
+  },
+  {
+    "action": "auth.login",
+    "userId": "u_prorab1",
+    "userLogin": "prorab1",
+    "userName": "Каримов Одил (Прораб РМУ)",
+    "userRole": "prorab",
+    "userOrg": "РМУ",
+    "details": "Тизимга муваффақиятли кирди",
+    "id": "act_1787931335035_18dvd",
+    "timestamp": "2026-08-28T15:35:35.035Z"
+  },
+  {
+    "action": "auth.login",
+    "userId": "u_admin",
+    "userLogin": "admin",
+    "userName": "Система Админ",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизимга муваффақиятли кирди",
+    "id": "act_1787931326057_bi947",
+    "timestamp": "2026-08-28T15:35:26.057Z"
+  },
+  {
     "action": "backup.import_from_file",
     "userId": "admin",
     "userLogin": "admin",

@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "acc_1",
+    "docNumber": "ЭСФ-884102",
+    "invoiceDate": "2026-08-15",
+    "supplier": "ООО \"METALL INVEST ASIA\"",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "items": [
+      {
+        "rawName": "Арматурный прокат 12 мм А500С ст3",
+        "mappedMaterialName": "Арматура А500С d=12мм",
+        "unit": "тн",
+        "qty": 20,
+        "price": 9100000,
+        "totalSum": 182000000
+      }
+    ],
+    "totalSum": 182000000,
+    "importedBy": "Умарова Нигора (Бухгалтер РМУ)",
+    "importedAt": "2026-08-16T11:00:00.000Z"
+  }
+]

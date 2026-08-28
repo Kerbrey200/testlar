@@ -261,7 +261,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'u_disp_umm', login: 'dispatcher_umm', parolHash: hashPasswordSync('dispatcher_umm', defaultPass), fullName: 'Мирзаев Эркин (Диспетчер УММ)', rol: 'dispatcher_umm', org: 'УММ', phone: '+998 93 777-88-99', createdAt: '2026-01-01T00:00:00.000Z' },
   ];
 
-  if (!fs.existsSync(getStorePath('users'))) {
+  const currentUsers = readStore<User[]>('users', []);
+  if (!fs.existsSync(getStorePath('users')) || !Array.isArray(currentUsers) || currentUsers.length === 0) {
     writeStore('users', defaultUsers);
   }
 
@@ -272,7 +273,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'obj_4', name: 'Производственный цех ПМУ №2', org: 'ПМУ', address: 'г. Ташкент, Сергелийский промзона', status: 'active', createdAt: '2026-02-10T00:00:00.000Z' },
     { id: 'obj_5', name: 'Автобаза и мехпарк УММ', org: 'УММ', address: 'г. Ташкент, Бектемирский р-н', status: 'active', createdAt: '2026-02-15T00:00:00.000Z' },
   ];
-  if (!fs.existsSync(getStorePath('objects'))) {
+  const currentObjects = readStore<ConstructionObject[]>('objects', []);
+  if (!fs.existsSync(getStorePath('objects')) || !Array.isArray(currentObjects) || currentObjects.length === 0) {
     writeStore('objects', defaultObjects);
   }
 
@@ -290,7 +292,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'mat_11', name: 'Труба стальная 89х3.5', unit: 'м.п', category: 'Трубы', code: '06.01.89' },
     { id: 'mat_12', name: 'Кабель ВВГнг-LS 3x2.5', unit: 'м', category: 'Электрика', code: '07.01.25' },
   ];
-  if (!fs.existsSync(getStorePath('materials'))) {
+  const currentMaterials = readStore<MaterialItem[]>('materials', []);
+  if (!fs.existsSync(getStorePath('materials')) || !Array.isArray(currentMaterials) || currentMaterials.length === 0) {
     writeStore('materials', defaultMaterials);
   }
 
@@ -302,7 +305,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'mech_5', name: 'Бетононасос Putzmeister', category: 'Бетонные', model: 'BSA 1409 D', plateNumber: '01 109 AAA', status: 'available' },
     { id: 'mech_6', name: 'Бульдозер Shantui SD16', category: 'Землеройные', model: 'SD16', plateNumber: '01 445 CAA', status: 'available' },
   ];
-  if (!fs.existsSync(getStorePath('mechanisms'))) {
+  const currentMechs = readStore<MechanismCatalogueItem[]>('mechanisms', []);
+  if (!fs.existsSync(getStorePath('mechanisms')) || !Array.isArray(currentMechs) || currentMechs.length === 0) {
     writeStore('mechanisms', defaultMechanisms);
   }
 
@@ -314,7 +318,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'stk_5', ownerType: 'prorab', ownerId: 'u_prorab1', ownerName: 'Каримов Одил (ЖК Навруз)', materialId: 'mat_6', materialName: 'Кирпич жженый одинарный 1НФ', unit: 'тыс.шт', qty: 65.0, updatedAt: '2026-08-22T14:30:00.000Z' },
     { id: 'stk_6', ownerType: 'expeditor', ownerId: 'u_snab1', ownerName: 'Тураев Мурод (Экспедитор)', materialId: 'mat_12', materialName: 'Кабель ВВГнг-LS 3x2.5', unit: 'м', qty: 850.0, updatedAt: '2026-08-23T09:15:00.000Z' },
   ];
-  if (!fs.existsSync(getStorePath('stocks'))) {
+  const currentStocks = readStore<StockItem[]>('stocks', []);
+  if (!fs.existsSync(getStorePath('stocks')) || !Array.isArray(currentStocks) || currentStocks.length === 0) {
     writeStore('stocks', defaultStocks);
   }
 
@@ -381,7 +386,8 @@ export function seedInitialDataIfNeeded() {
       updatedAt: '2026-08-24T16:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('zayavki'))) {
+  const currentZayavki = readStore<Zayavka[]>('zayavki', []);
+  if (!fs.existsSync(getStorePath('zayavki')) || !Array.isArray(currentZayavki) || currentZayavki.length === 0) {
     writeStore('zayavki', defaultZayavki);
   }
 
@@ -406,7 +412,8 @@ export function seedInitialDataIfNeeded() {
       updatedAt: '2026-08-24T17:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('hisobotlar'))) {
+  const currentHis = readStore<Hisobot[]>('hisobotlar', []);
+  if (!fs.existsSync(getStorePath('hisobotlar')) || !Array.isArray(currentHis) || currentHis.length === 0) {
     writeStore('hisobotlar', defaultHisobotlar);
   }
 
@@ -429,7 +436,8 @@ export function seedInitialDataIfNeeded() {
       updatedAt: '2026-08-24T15:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('ummZayavki'))) {
+  const currentUmm = readStore<UmmZayavka[]>('ummZayavki', []);
+  if (!fs.existsSync(getStorePath('ummZayavki')) || !Array.isArray(currentUmm) || currentUmm.length === 0) {
     writeStore('ummZayavki', defaultUmmZayavki);
   }
 
@@ -455,7 +463,8 @@ export function seedInitialDataIfNeeded() {
       updatedAt: '2026-08-24T10:30:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('pmuZayavki'))) {
+  const currentPmuZay = readStore<PmuZayavka[]>('pmuZayavki', []);
+  if (!fs.existsSync(getStorePath('pmuZayavki')) || !Array.isArray(currentPmuZay) || currentPmuZay.length === 0) {
     writeStore('pmuZayavki', defaultPmuZayavki);
   }
 
@@ -478,7 +487,8 @@ export function seedInitialDataIfNeeded() {
       sentAt: '2026-08-24T14:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('pmuNakladnoy'))) {
+  const currentPmuNak = readStore<PmuNakladnoy[]>('pmuNakladnoy', []);
+  if (!fs.existsSync(getStorePath('pmuNakladnoy')) || !Array.isArray(currentPmuNak) || currentPmuNak.length === 0) {
     writeStore('pmuNakladnoy', defaultPmuNakladnoy);
   }
 
@@ -504,7 +514,8 @@ export function seedInitialDataIfNeeded() {
       sentAt: '2026-08-24T16:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('nakladnoy'))) {
+  const currentNak = readStore<Nakladnoy[]>('nakladnoy', []);
+  if (!fs.existsSync(getStorePath('nakladnoy')) || !Array.isArray(currentNak) || currentNak.length === 0) {
     writeStore('nakladnoy', defaultNakladnoy);
   }
 
@@ -513,7 +524,8 @@ export function seedInitialDataIfNeeded() {
     { id: 'syn_2', vendorName: 'Бетонная смесь тяжелая В25 П4 F150 W6', standardMaterialId: 'mat_4', standardMaterialName: 'Бетон товарный М-350 (B25)', createdAt: '2026-01-01T00:00:00.000Z' },
     { id: 'syn_3', vendorName: 'Портландцемент М400 в мешках по 50кг', standardMaterialId: 'mat_5', standardMaterialName: 'Цемент ПЦ 400-Д20', createdAt: '2026-01-01T00:00:00.000Z' },
   ];
-  if (!fs.existsSync(getStorePath('synonyms'))) {
+  const currentSyn = readStore<SynonymMapping[]>('synonyms', []);
+  if (!fs.existsSync(getStorePath('synonyms')) || !Array.isArray(currentSyn) || currentSyn.length === 0) {
     writeStore('synonyms', defaultSynonyms);
   }
 
@@ -541,7 +553,8 @@ export function seedInitialDataIfNeeded() {
       importedAt: '2026-08-16T11:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('invoices'))) {
+  const currentInvoices = readStore<AccountInvoice[]>('invoices', []);
+  if (!fs.existsSync(getStorePath('invoices')) || !Array.isArray(currentInvoices) || currentInvoices.length === 0) {
     writeStore('invoices', defaultInvoices);
   }
 
@@ -558,7 +571,8 @@ export function seedInitialDataIfNeeded() {
       timestamp: '2026-08-24T06:00:00.000Z',
     },
   ];
-  if (!fs.existsSync(getStorePath('activity'))) {
+  const currentActivity = readStore<ActivityAudit[]>('activity', []);
+  if (!fs.existsSync(getStorePath('activity')) || !Array.isArray(currentActivity) || currentActivity.length === 0) {
     writeStore('activity', defaultActivity);
   }
 }

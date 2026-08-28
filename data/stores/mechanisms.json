@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "mech_1",
+    "name": "Башенный кран КБ-408",
+    "category": "Краны",
+    "model": "КБ-408.21",
+    "plateNumber": "01 542 UAA",
+    "status": "available"
+  },
+  {
+    "id": "mech_2",
+    "name": "Автокран 25т XCMG QY25K5",
+    "category": "Краны",
+    "model": "QY25K5-I",
+    "plateNumber": "01 771 TAA",
+    "status": "available"
+  },
+  {
+    "id": "mech_3",
+    "name": "Экскаватор гусеничный Hyundai R220",
+    "category": "Землеройные",
+    "model": "R220LC-9S",
+    "plateNumber": "01 312 VAA",
+    "status": "available"
+  },
+  {
+    "id": "mech_4",
+    "name": "Самосвал Howo 25т Sinotruk",
+    "category": "Транспорт",
+    "model": "ZZ3257N3847",
+    "plateNumber": "01 890 BAA",
+    "status": "available"
+  },
+  {
+    "id": "mech_5",
+    "name": "Бетононасос Putzmeister",
+    "category": "Бетонные",
+    "model": "BSA 1409 D",
+    "plateNumber": "01 109 AAA",
+    "status": "available"
+  },
+  {
+    "id": "mech_6",
+    "name": "Бульдозер Shantui SD16",
+    "category": "Землеройные",
+    "model": "SD16",
+    "plateNumber": "01 445 CAA",
+    "status": "available"
+  }
+]

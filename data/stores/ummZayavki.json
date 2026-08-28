@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "umm_1",
+    "docNumber": "УММ-2026-012",
+    "org": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "prorabId": "u_prorab1",
+    "prorabName": "Каримов Одил",
+    "mechanismType": "Автокран 25т",
+    "dateRequired": "2026-08-26",
+    "purpose": "Монтаж металлических ферм и разгрузка арматуры",
+    "status": "glinj_so",
+    "uprSignedBy": "Махмудов Сардор (Гл.инж РМУ)",
+    "uprSignedAt": "2026-08-24T15:00:00.000Z",
+    "createdAt": "2026-08-24T12:00:00.000Z",
+    "updatedAt": "2026-08-24T15:00:00.000Z"
+  }
+]
