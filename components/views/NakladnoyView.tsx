@@ -31,15 +31,6 @@ interface Props {
   objects: ConstructionObject[];
   users: User[];
   onSaveNakladnoy: (nak: Nakladnoy, auditAction: string, auditDetails: string) => Promise<void>;
-  onTransferStock: (
-    senderId: string,
-    receiverId: string,
-    receiverName: string,
-    receiverOrg: any,
-    objectId: string,
-    objectName: string,
-    items: NakladnoyItem[]
-  ) => Promise<void>;
 }
 
 export default function NakladnoyView({
@@ -49,7 +40,6 @@ export default function NakladnoyView({
   objects,
   users,
   onSaveNakladnoy,
-  onTransferStock,
 }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -184,7 +174,7 @@ export default function NakladnoyView({
     setSelectedNak(updated);
   };
 
-  // Step 3: Prorab accepts -> 'received' and stock transferred!
+  // Step 3: Prorab accepts -> 'received' (server automatically performs atomic stock transfer once)
   const handleReceiveNakladnoy = async (nak: Nakladnoy) => {
     const updated: Nakladnoy = {
       ...nak,
@@ -192,17 +182,6 @@ export default function NakladnoyView({
       receivedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-
-    // Update stock balances
-    await onTransferStock(
-      nak.senderId || 'central',
-      nak.receiverId || nak.recipientId || '',
-      nak.receiverName || nak.recipientName || '',
-      nak.receiverOrg || nak.recipientOrg || nak.senderOrg || 'СО',
-      nak.objectId,
-      nak.objectName,
-      nak.items
-    );
 
     await onSaveNakladnoy(
       updated,

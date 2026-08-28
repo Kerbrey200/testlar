@@ -402,83 +402,6 @@ export default function App() {
     await logAndSave('nakladnoylar', n, auditAction, auditDetails);
   };
 
-  const handleTransferStock = async (
-    senderId: string,
-    receiverId: string,
-    receiverName: string,
-    receiverOrg: any,
-    objectId: string,
-    objectName: string,
-    items: any[]
-  ) => {
-    const isItemMatch = (s: StockItem, it: { materialId?: string; materialName: string }) => {
-      if (it.materialId && s.materialId) {
-        return s.materialId === it.materialId;
-      }
-      return s.materialName.trim().toLowerCase() === it.materialName.trim().toLowerCase();
-    };
-
-    for (const it of items) {
-      const requestedQty = Number(it.qty) || 0;
-      if (requestedQty <= 0) continue;
-
-      // 1. Locate Sender stock record using senderId (or central/admin)
-      const senderItem = stocks.find(
-        (s) =>
-          (s.ownerId === senderId || (senderId === 'central' && s.ownerType === 'admin')) &&
-          isItemMatch(s, it)
-      );
-
-      const currentSenderQty = senderItem ? (senderItem.quantity ?? senderItem.qty ?? 0) : 0;
-      // Deduct only what actually exists to prevent creating stock from nothing
-      const actualTransferQty = Math.min(requestedQty, currentSenderQty);
-
-      if (senderItem) {
-        senderItem.quantity = Math.max(0, currentSenderQty - actualTransferQty);
-        senderItem.qty = senderItem.quantity;
-        senderItem.updatedAt = new Date().toISOString();
-        await syncController.saveItem('stocks', senderItem);
-      }
-
-      // 2. Increase or create for prorab's object warehouse using actual transferred quantity
-      if (actualTransferQty > 0) {
-        const prorabItem = stocks.find(
-          (s) =>
-            s.ownerId === receiverId &&
-            s.objectId === objectId &&
-            isItemMatch(s, it)
-        );
-
-        if (prorabItem) {
-          const currentQty = prorabItem.quantity ?? prorabItem.qty ?? 0;
-          prorabItem.quantity = currentQty + actualTransferQty;
-          prorabItem.qty = prorabItem.quantity;
-          prorabItem.updatedAt = new Date().toISOString();
-          await syncController.saveItem('stocks', prorabItem);
-        } else {
-          const newStock: StockItem = {
-            id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-            materialId: it.materialId || '',
-            materialName: it.materialName.trim(),
-            unit: it.unit,
-            quantity: actualTransferQty,
-            qty: actualTransferQty,
-            price: it.price || 0,
-            ownerType: 'prorab',
-            ownerId: receiverId,
-            ownerName: receiverName,
-            ownerOrg: receiverOrg,
-            objectId,
-            objectName,
-            updatedAt: new Date().toISOString(),
-          };
-          await syncController.saveItem('stocks', newStock);
-        }
-      }
-    }
-    await loadAllData();
-  };
-
   const handleSaveStock = async (stk: StockItem, auditAction: string, auditDetails: string) => {
     await logAndSave('stocks', stk, auditAction, auditDetails);
   };
@@ -976,7 +899,6 @@ export default function App() {
               objects={objects}
               users={users}
               onSaveNakladnoy={handleSaveNakladnoy}
-              onTransferStock={handleTransferStock}
             />
           )}
 

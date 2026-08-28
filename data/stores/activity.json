@@ -1,0 +1,149 @@
+[
+  {
+    "action": "backup.import_from_file",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+    "id": "act_1787927860113_25mja",
+    "timestamp": "2026-08-28T14:37:40.113Z"
+  },
+  {
+    "action": "backup.download",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Захира нусха файли юклаб олинди: auto-2026-08-28T14-37-40-001Z.json",
+    "id": "act_1787927860040_64r33",
+    "timestamp": "2026-08-28T14:37:40.040Z"
+  },
+  {
+    "action": "backup.restore",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Файл: auto-2026-08-28T14-37-40-001Z.json, 15 та бўлим/жадвал)",
+    "id": "act_1787927860026_0zqeq",
+    "timestamp": "2026-08-28T14:37:40.026Z"
+  },
+  {
+    "action": "backup.import_from_file",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+    "id": "act_1787927831713_sp4w8",
+    "timestamp": "2026-08-28T14:37:11.713Z"
+  },
+  {
+    "action": "backup.download",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Захира нусха файли юклаб олинди: auto-2026-08-28T14-37-11-598Z.json",
+    "id": "act_1787927831643_18x0b",
+    "timestamp": "2026-08-28T14:37:11.643Z"
+  },
+  {
+    "action": "backup.restore",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Файл: auto-2026-08-28T14-37-11-598Z.json, 15 та бўлим/жадвал)",
+    "id": "act_1787927831623_n0m6n",
+    "timestamp": "2026-08-28T14:37:11.623Z"
+  },
+  {
+    "action": "stock.insufficient_transfer",
+    "userId": "system",
+    "userLogin": "system",
+    "userName": "Система",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Омборда қолдиқ етишмади: \"Арматура А500С d=12мм\" бўйича сўралган 5 тн, аммо мавжуд фақат 0 тн ўтказилди",
+    "entityType": "nakladnoy",
+    "entityId": "nak_verify_1787927831462",
+    "id": "act_1787927831525_2m4mr",
+    "timestamp": "2026-08-28T14:37:11.525Z"
+  },
+  {
+    "action": "backup.import_from_file",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+    "id": "act_1787927766653_52q31",
+    "timestamp": "2026-08-28T14:36:06.653Z"
+  },
+  {
+    "action": "backup.download",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Захира нусха файли юклаб олинди: auto-2026-08-28T14-36-05-552Z.json",
+    "id": "act_1787927766579_t90eu",
+    "timestamp": "2026-08-28T14:36:06.579Z"
+  },
+  {
+    "action": "backup.restore",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Файл: auto-2026-08-28T14-36-05-552Z.json, 15 та бўлим/жадвал)",
+    "id": "act_1787927765940_c23q9",
+    "timestamp": "2026-08-28T14:36:05.940Z"
+  },
+  {
+    "action": "stock.insufficient_transfer",
+    "userId": "system",
+    "userLogin": "system",
+    "userName": "Система",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Омборда қолдиқ етишмади: \"Цемент М-500\" бўйича сўралган 10 тн, аммо мавжуд фақат 0 тн ўтказилди",
+    "entityType": "nakladnoy",
+    "entityId": "nak_test_100",
+    "id": "act_1787927764688_3qndz",
+    "timestamp": "2026-08-28T14:36:04.688Z"
+  },
+  {
+    "action": "backup.import_from_file",
+    "userId": "admin",
+    "userLogin": "admin",
+    "userName": "Администратор",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+    "id": "act_1787927700714_cly61",
+    "timestamp": "2026-08-28T14:35:00.714Z"
+  },
+  {
+    "action": "backup.auto",
+    "userId": "system",
+    "userLogin": "system",
+    "userName": "Автомат Тизим",
+    "userRole": "admin",
+    "userOrg": "СО",
+    "details": "Автоматик захира нусха яратилди: auto-2026-08-28T14-34-59-581Z.json (0 та 10 кундан эски нусха ўчирилди)",
+    "id": "act_1787927699584_5q0f7",
+    "timestamp": "2026-08-28T14:34:59.584Z"
+  }
+]

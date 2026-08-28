@@ -161,6 +161,32 @@ export function recordActivity(audit: Omit<ActivityAudit, 'id' | 'timestamp'>): 
   return newEntry;
 }
 
+export const ARRAY_ENTITY_STORES = [
+  'users',
+  'objects',
+  'materials',
+  'mechanisms',
+  'zayavki',
+  'hisobotlar',
+  'ummZayavki',
+  'pmuZayavki',
+  'pmuNakladnoy',
+  'nakladnoy',
+  'stocks',
+  'synonyms',
+  'invoices',
+  'activity',
+] as const;
+
+export const OBJECT_ENTITY_STORES = [
+  'counters',
+] as const;
+
+export const ALL_BACKUP_STORES = [
+  ...ARRAY_ENTITY_STORES,
+  ...OBJECT_ENTITY_STORES,
+] as const;
+
 export function performAutoBackup(): { success: boolean; filename: string; removedOldCount: number } {
   ensureDirectories();
   const now = new Date();
@@ -168,31 +194,17 @@ export function performAutoBackup(): { success: boolean; filename: string; remov
   const filename = `auto-${dateStr}.json`;
   const backupFilePath = path.join(BACKUPS_DIR, filename);
 
-  const entities = [
-    'users',
-    'objects',
-    'materials',
-    'mechanisms',
-    'zayavki',
-    'hisobotlar',
-    'ummZayavki',
-    'pmuZayavki',
-    'pmuNakladnoy',
-    'nakladnoy',
-    'stocks',
-    'synonyms',
-    'invoices',
-    'activity',
-    'counters',
-  ];
-
   const fullData: Record<string, unknown> = {
     backupTimestamp: now.toISOString(),
     backupType: 'auto',
   };
 
-  for (const entity of entities) {
+  for (const entity of ARRAY_ENTITY_STORES) {
     fullData[entity] = readStore(entity, []);
+  }
+
+  for (const objEntity of OBJECT_ENTITY_STORES) {
+    fullData[objEntity] = readStore(objEntity, {});
   }
 
   try {

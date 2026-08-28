@@ -1,0 +1,268 @@
+{
+  "backupTimestamp": "2026-08-28T14:37:40.001Z",
+  "backupType": "auto",
+  "users": [],
+  "objects": [],
+  "materials": [],
+  "mechanisms": [],
+  "zayavki": [],
+  "hisobotlar": [],
+  "ummZayavki": [],
+  "pmuZayavki": [],
+  "pmuNakladnoy": [],
+  "nakladnoy": [
+    {
+      "id": "nak_verify_1787927859912",
+      "docNumber": "ТТН-2026-TEST",
+      "senderId": "central",
+      "senderName": "Центральный склад (СО)",
+      "receiverId": "u_prorab1",
+      "receiverName": "Каримов Одил (ЖК Навруз)",
+      "receiverOrg": "РМУ",
+      "objectId": "obj_1",
+      "objectName": "ЖК \"Навруз\" (Блок А-1)",
+      "driverName": "Ҳасанов А.",
+      "vehicleNumber": "01 A 123 AA",
+      "status": "received",
+      "items": [
+        {
+          "id": "item_1",
+          "materialId": "mat_1",
+          "materialName": "Арматура А500С d=12мм",
+          "unit": "тн",
+          "qty": 5,
+          "price": 900000,
+          "sum": 4500000
+        }
+      ],
+      "createdAt": "2026-08-28T14:37:39.912Z",
+      "updatedAt": "2026-08-28T14:37:39.912Z",
+      "receivedAt": "2026-08-28T14:37:39.938Z"
+    },
+    {
+      "id": "nak_verify_1787927831462",
+      "docNumber": "ТТН-2026-TEST",
+      "senderId": "central",
+      "senderName": "Центральный склад (СО)",
+      "receiverId": "u_prorab1",
+      "receiverName": "Каримов Одил (ЖК Навруз)",
+      "receiverOrg": "РМУ",
+      "objectId": "obj_1",
+      "objectName": "ЖК \"Навруз\" (Блок А-1)",
+      "driverName": "Ҳасанов А.",
+      "vehicleNumber": "01 A 123 AA",
+      "status": "received",
+      "items": [
+        {
+          "id": "item_1",
+          "materialId": "mat_1",
+          "materialName": "Арматура А500С d=12мм",
+          "unit": "тн",
+          "qty": 5,
+          "price": 900000,
+          "sum": 4500000
+        }
+      ],
+      "createdAt": "2026-08-28T14:37:11.462Z",
+      "updatedAt": "2026-08-28T14:37:11.462Z",
+      "receivedAt": "2026-08-28T14:37:11.501Z"
+    },
+    {
+      "id": "nak_test_100",
+      "docNumber": "ТТН-2026-999",
+      "senderId": "central",
+      "senderName": "Марказий омбор",
+      "receiverId": "u_prorab1",
+      "receiverName": "Каримов Одил",
+      "receiverOrg": "РМУ",
+      "objectId": "obj_1",
+      "objectName": "Болалар боғчаси",
+      "driverName": "Ҳасанов А.",
+      "vehicleNumber": "01 A 123 AA",
+      "status": "received",
+      "items": [
+        {
+          "id": "item_1",
+          "materialId": "mat_test_1",
+          "materialName": "Цемент М-500",
+          "unit": "тн",
+          "qty": 10,
+          "price": 900000,
+          "sum": 9000000
+        }
+      ],
+      "createdAt": "2026-08-28T14:36:04.511Z",
+      "updatedAt": "2026-08-28T14:36:04.511Z",
+      "receivedAt": "2026-08-28T14:36:04.609Z"
+    },
+    {
+      "id": "nak_test_1",
+      "docNumber": "TTN-1",
+      "senderId": "central",
+      "receiverId": "u_prorab1",
+      "objectId": "obj_1",
+      "objectName": "Obj1",
+      "status": "sent",
+      "items": [
+        {
+          "id": "1",
+          "materialName": "Арматура А500С d=12мм",
+          "unit": "тн",
+          "qty": 5
+        }
+      ]
+    }
+  ],
+  "stocks": [
+    {
+      "id": "stk_test_central_1787927859870",
+      "ownerType": "admin",
+      "ownerId": "central",
+      "ownerName": "Центральный склад (СО)",
+      "materialId": "mat_1",
+      "materialName": "Арматура А500С d=12мм",
+      "unit": "тн",
+      "quantity": 45,
+      "qty": 45,
+      "price": 900000,
+      "updatedAt": "2026-08-28T14:37:39.959Z"
+    },
+    {
+      "id": "stk_1787927859959_p3ii",
+      "ownerType": "prorab",
+      "ownerId": "u_prorab1",
+      "ownerName": "Каримов Одил (ЖК Навруз)",
+      "ownerOrg": "РМУ",
+      "objectId": "obj_1",
+      "objectName": "ЖК \"Навруз\" (Блок А-1)",
+      "materialId": "mat_1",
+      "materialName": "Арматура А500С d=12мм",
+      "unit": "тн",
+      "quantity": 5,
+      "qty": 5,
+      "price": 900000,
+      "updatedAt": "2026-08-28T14:37:39.959Z"
+    }
+  ],
+  "synonyms": [],
+  "invoices": [],
+  "activity": [
+    {
+      "action": "backup.import_from_file",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+      "id": "act_1787927831713_sp4w8",
+      "timestamp": "2026-08-28T14:37:11.713Z"
+    },
+    {
+      "action": "backup.download",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Захира нусха файли юклаб олинди: auto-2026-08-28T14-37-11-598Z.json",
+      "id": "act_1787927831643_18x0b",
+      "timestamp": "2026-08-28T14:37:11.643Z"
+    },
+    {
+      "action": "backup.restore",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Файл: auto-2026-08-28T14-37-11-598Z.json, 15 та бўлим/жадвал)",
+      "id": "act_1787927831623_n0m6n",
+      "timestamp": "2026-08-28T14:37:11.623Z"
+    },
+    {
+      "action": "stock.insufficient_transfer",
+      "userId": "system",
+      "userLogin": "system",
+      "userName": "Система",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Омборда қолдиқ етишмади: \"Арматура А500С d=12мм\" бўйича сўралган 5 тн, аммо мавжуд фақат 0 тн ўтказилди",
+      "entityType": "nakladnoy",
+      "entityId": "nak_verify_1787927831462",
+      "id": "act_1787927831525_2m4mr",
+      "timestamp": "2026-08-28T14:37:11.525Z"
+    },
+    {
+      "action": "backup.import_from_file",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+      "id": "act_1787927766653_52q31",
+      "timestamp": "2026-08-28T14:36:06.653Z"
+    },
+    {
+      "action": "backup.download",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Захира нусха файли юклаб олинди: auto-2026-08-28T14-36-05-552Z.json",
+      "id": "act_1787927766579_t90eu",
+      "timestamp": "2026-08-28T14:36:06.579Z"
+    },
+    {
+      "action": "backup.restore",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Файл: auto-2026-08-28T14-36-05-552Z.json, 15 та бўлим/жадвал)",
+      "id": "act_1787927765940_c23q9",
+      "timestamp": "2026-08-28T14:36:05.940Z"
+    },
+    {
+      "action": "stock.insufficient_transfer",
+      "userId": "system",
+      "userLogin": "system",
+      "userName": "Система",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Омборда қолдиқ етишмади: \"Цемент М-500\" бўйича сўралган 10 тн, аммо мавжуд фақат 0 тн ўтказилди",
+      "entityType": "nakladnoy",
+      "entityId": "nak_test_100",
+      "id": "act_1787927764688_3qndz",
+      "timestamp": "2026-08-28T14:36:04.688Z"
+    },
+    {
+      "action": "backup.import_from_file",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+      "id": "act_1787927700714_cly61",
+      "timestamp": "2026-08-28T14:35:00.714Z"
+    },
+    {
+      "action": "backup.auto",
+      "userId": "system",
+      "userLogin": "system",
+      "userName": "Автомат Тизим",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Автоматик захира нусха яратилди: auto-2026-08-28T14-34-59-581Z.json (0 та 10 кундан эски нусха ўчирилди)",
+      "id": "act_1787927699584_5q0f7",
+      "timestamp": "2026-08-28T14:34:59.584Z"
+    }
+  ],
+  "counters": {
+    "zayavki_2026": 100
+  }
+}

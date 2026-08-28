@@ -1,0 +1,16 @@
+[
+  {
+    "id": "stk_test_central",
+    "materialId": "mat_test_1",
+    "materialName": "Цемент М-500",
+    "unit": "тн",
+    "quantity": 50,
+    "qty": 50,
+    "price": 900000,
+    "ownerType": "admin",
+    "ownerId": "central",
+    "ownerName": "Марказий омбор",
+    "ownerOrg": "СО",
+    "updatedAt": "2026-08-28T14:36:04.511Z"
+  }
+]

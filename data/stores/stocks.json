@@ -1,0 +1,31 @@
+[
+  {
+    "id": "stk_test_central_1787927859870",
+    "ownerType": "admin",
+    "ownerId": "central",
+    "ownerName": "Центральный склад (СО)",
+    "materialId": "mat_1",
+    "materialName": "Арматура А500С d=12мм",
+    "unit": "тн",
+    "quantity": 45,
+    "qty": 45,
+    "price": 900000,
+    "updatedAt": "2026-08-28T14:37:39.959Z"
+  },
+  {
+    "id": "stk_1787927859959_p3ii",
+    "ownerType": "prorab",
+    "ownerId": "u_prorab1",
+    "ownerName": "Каримов Одил (ЖК Навруз)",
+    "ownerOrg": "РМУ",
+    "objectId": "obj_1",
+    "objectName": "ЖК \"Навруз\" (Блок А-1)",
+    "materialId": "mat_1",
+    "materialName": "Арматура А500С d=12мм",
+    "unit": "тн",
+    "quantity": 5,
+    "qty": 5,
+    "price": 900000,
+    "updatedAt": "2026-08-28T14:37:39.959Z"
+  }
+]

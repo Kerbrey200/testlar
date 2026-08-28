@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ShieldCheck,
   Users,
@@ -12,6 +12,8 @@ import {
   Lock,
   RefreshCw,
   Download,
+  Upload,
+  FileUp,
   AlertTriangle,
   CheckCircle2,
   Trash2,
@@ -69,6 +71,7 @@ export default function AdminView({
   // Backup list state
   const [backups, setBackups] = useState<{ filename: string; size: number; createdAt: string }[]>([]);
   const [backupLoading, setBackupLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load backups when switching to backup tab
   const fetchBackups = async () => {
@@ -99,6 +102,90 @@ export default function AdminView({
     }
   };
 
+  const handleDownloadBackup = async (filename: string) => {
+    try {
+      const res = await fetch(`/api/backup/download?filename=${encodeURIComponent(filename)}`, {
+        headers: {
+          'x-user': encodeURIComponent(JSON.stringify(currentUser)),
+        },
+      });
+      if (!res.ok) {
+        throw new Error('Файлни юклаб олишда хатолик');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Файлни юклаб олишда хатолик юз берди');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      alert('Фақат .json форматидаги захира файлини юклаш мумкин!');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = JSON.parse(text);
+
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('JSON формати нотўғри');
+        }
+
+        if (
+          !confirm(
+            `ДИҚҚАТ! "${file.name}" файлидан маълумотлар тикланади.\nБу амал ҳозирги барча маълумотларни алмаштиради.\nДавом этасизми?`
+          )
+        ) {
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        }
+
+        setBackupLoading(true);
+        const res = await fetch('/api/backup/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rawData: parsed,
+            user: currentUser,
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert(`Файлдан муваффақиятли тикланди! (${data.message || ''})`);
+          await onRefreshData();
+          await fetchBackups();
+        } else {
+          alert(`Тиклашда хатолик: ${data.error || 'Номаълум хато'}`);
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert(`Файлни ўқишда хатолик: ${err?.message || 'JSON формати нотўғри'}`);
+      } finally {
+        setBackupLoading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   const handleRestoreBackup = async (filename: string) => {
     if (
       confirm(
@@ -109,12 +196,13 @@ export default function AdminView({
         const res = await fetch('/api/backup/restore', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename }),
+          body: JSON.stringify({ filename, user: currentUser }),
         });
         const data = await res.json();
         if (data.success) {
           alert('Маълумотлар муваффақиятли қайта тикланди!');
           await onRefreshData();
+          await fetchBackups();
         }
       } catch (e) {
         alert('Тиклашда хатолик бўлди');
@@ -433,17 +521,37 @@ export default function AdminView({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={backupLoading}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+                title="Компьютердаги JSON захира файлидан тиклаш"
+              >
+                <Upload className="h-4 w-4 text-slate-600" />
+                <span>Файлдан тиклаш (Import)</span>
+              </button>
+
               <button
                 onClick={handleCreateManualBackup}
+                disabled={backupLoading}
                 className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-blue-700 transition"
               >
                 <Database className="h-4 w-4" />
                 <span>Ҳозир нусха олиш</span>
               </button>
+
               <button
                 onClick={fetchBackups}
                 className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
+                title="Янгилаш"
               >
                 <RefreshCw className={`h-4 w-4 ${backupLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -467,12 +575,22 @@ export default function AdminView({
                     <td className="px-4 py-3.5 text-slate-600 font-mono">{(b.size / 1024).toFixed(1)} KB</td>
                     <td className="px-4 py-3.5 text-slate-500">{new Date(b.createdAt).toLocaleString()}</td>
                     <td className="px-4 py-3.5 text-right">
-                      <button
-                        onClick={() => handleRestoreBackup(b.filename)}
-                        className="rounded-lg bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 hover:bg-amber-100 border border-amber-200 transition"
-                      >
-                        Тиклаш (Restore)
-                      </button>
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleDownloadBackup(b.filename)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-200 border border-slate-200 transition"
+                          title="Файлни компютерга юклаб олиш"
+                        >
+                          <Download className="h-3.5 w-3.5 text-slate-600" />
+                          <span>Юклаб олиш</span>
+                        </button>
+                        <button
+                          onClick={() => handleRestoreBackup(b.filename)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 hover:bg-amber-100 border border-amber-200 transition"
+                        >
+                          <span>Тиклаш (Restore)</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

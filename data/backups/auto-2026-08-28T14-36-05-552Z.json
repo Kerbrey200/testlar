@@ -1,0 +1,103 @@
+{
+  "backupTimestamp": "2026-08-28T14:36:05.552Z",
+  "backupType": "auto",
+  "users": [],
+  "objects": [],
+  "materials": [],
+  "mechanisms": [],
+  "zayavki": [],
+  "hisobotlar": [],
+  "ummZayavki": [],
+  "pmuZayavki": [],
+  "pmuNakladnoy": [],
+  "nakladnoy": [
+    {
+      "id": "nak_test_100",
+      "docNumber": "ТТН-2026-999",
+      "senderId": "central",
+      "senderName": "Марказий омбор",
+      "receiverId": "u_prorab1",
+      "receiverName": "Каримов Одил",
+      "receiverOrg": "РМУ",
+      "objectId": "obj_1",
+      "objectName": "Болалар боғчаси",
+      "driverName": "Ҳасанов А.",
+      "vehicleNumber": "01 A 123 AA",
+      "status": "received",
+      "items": [
+        {
+          "id": "item_1",
+          "materialId": "mat_test_1",
+          "materialName": "Цемент М-500",
+          "unit": "тн",
+          "qty": 10,
+          "price": 900000,
+          "sum": 9000000
+        }
+      ],
+      "createdAt": "2026-08-28T14:36:04.511Z",
+      "updatedAt": "2026-08-28T14:36:04.511Z",
+      "receivedAt": "2026-08-28T14:36:04.609Z"
+    },
+    {
+      "id": "nak_test_1",
+      "docNumber": "TTN-1",
+      "senderId": "central",
+      "receiverId": "u_prorab1",
+      "objectId": "obj_1",
+      "objectName": "Obj1",
+      "status": "sent",
+      "items": [
+        {
+          "id": "1",
+          "materialName": "Арматура А500С d=12мм",
+          "unit": "тн",
+          "qty": 5
+        }
+      ]
+    }
+  ],
+  "stocks": [],
+  "synonyms": [],
+  "invoices": [],
+  "activity": [
+    {
+      "action": "stock.insufficient_transfer",
+      "userId": "system",
+      "userLogin": "system",
+      "userName": "Система",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Омборда қолдиқ етишмади: \"Цемент М-500\" бўйича сўралган 10 тн, аммо мавжуд фақат 0 тн ўтказилди",
+      "entityType": "nakladnoy",
+      "entityId": "nak_test_100",
+      "id": "act_1787927764688_3qndz",
+      "timestamp": "2026-08-28T14:36:04.688Z"
+    },
+    {
+      "action": "backup.import_from_file",
+      "userId": "admin",
+      "userLogin": "admin",
+      "userName": "Администратор",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Тизим захира нусхадан тикланди (Юкланган JSON файл (Import from file), 1 та бўлим/жадвал)",
+      "id": "act_1787927700714_cly61",
+      "timestamp": "2026-08-28T14:35:00.714Z"
+    },
+    {
+      "action": "backup.auto",
+      "userId": "system",
+      "userLogin": "system",
+      "userName": "Автомат Тизим",
+      "userRole": "admin",
+      "userOrg": "СО",
+      "details": "Автоматик захира нусха яратилди: auto-2026-08-28T14-34-59-581Z.json (0 та 10 кундан эски нусха ўчирилди)",
+      "id": "act_1787927699584_5q0f7",
+      "timestamp": "2026-08-28T14:34:59.584Z"
+    }
+  ],
+  "counters": {
+    "zayavki_2026": 88
+  }
+}
