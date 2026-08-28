@@ -21,6 +21,7 @@ import {
   StockItem,
   ConstructionObject,
 } from '@/lib/types';
+import { syncController } from '@/lib/client-api';
 import PrintModal from '../PrintModal';
 
 interface Props {
@@ -116,9 +117,28 @@ export default function NakladnoyView({
       return;
     }
 
-    const docNum = `ТТН-${new Date().getFullYear()}-${String(nakladnoylar.length + 1).padStart(3, '0')}`;
+    // Check stock sufficiency in sender / central warehouse before creating Nakladnoy
+    for (const it of validItems) {
+      const matchStock = stocks.find(
+        (s) =>
+          (s.ownerType === 'admin' || s.ownerId === currentUser.id || s.ownerId === 'central') &&
+          (it.materialId && s.materialId
+            ? s.materialId === it.materialId
+            : s.materialName.trim().toLowerCase() === it.materialName.trim().toLowerCase())
+      );
+      const availableQty = matchStock ? (matchStock.quantity ?? matchStock.qty ?? 0) : 0;
+      if (it.qty > availableQty) {
+        alert(
+          `"${it.materialName}" учун марказий омборда етарли қолдиқ йўқ!\nМавжуд қолдиқ: ${availableQty} ${it.unit}\nСўралган миқдор: ${it.qty} ${it.unit}\n\nИлтимос, миқдорни мавжуд қолдиққа мосланг.`
+        );
+        return;
+      }
+    }
+
+    const currentYear = new Date().getFullYear();
+    const docNum = await syncController.getNextDocNumber('nakladnoy', currentYear);
     const newNak: Nakladnoy = {
-      id: 'nak_' + Date.now(),
+      id: 'nak_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       docNumber: docNum,
       senderId: currentUser.id,
       senderName: `${currentUser.fullName} (Марказий омбор)`,
@@ -131,6 +151,7 @@ export default function NakladnoyView({
       vehicleNumber,
       items: validItems.map((it) => ({
         ...it,
+        id: it.id || 'nitem_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
         sum: it.qty * (it.price || 0),
       })),
       status: 'new',

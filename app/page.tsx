@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import {
   LayoutDashboard,
   FileText,
@@ -50,28 +50,48 @@ import SfsoView from '@/components/views/SfsoView';
 import AccountsView from '@/components/views/AccountsView';
 import AdminView from '@/components/views/AdminView';
 
-export default function App() {
-  // Auth state
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const savedUser = localStorage.getItem('sm_current_user');
-      const savedTime = localStorage.getItem('sm_session_time');
-      if (savedUser && savedTime) {
-        const timeElapsed = Date.now() - parseInt(savedTime, 10);
-        if (timeElapsed < 8 * 60 * 60 * 1000) {
-          return JSON.parse(savedUser);
-        } else {
-          localStorage.removeItem('sm_current_user');
-          localStorage.removeItem('sm_session_time');
-        }
+const storageSubscribe = (callback: () => void) => {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+};
+
+const getClientSnapshot = (): string | null => {
+  try {
+    const savedUser = localStorage.getItem('sm_current_user');
+    const savedTime = localStorage.getItem('sm_session_time');
+    if (savedUser && savedTime) {
+      const timeElapsed = Date.now() - parseInt(savedTime, 10);
+      if (timeElapsed < 8 * 60 * 60 * 1000) {
+        return savedUser;
       }
-    } catch (e) {
-      console.error(e);
     }
-    return null;
-  });
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+};
+
+const getServerSnapshot = () => null;
+
+export default function App() {
+  const isMounted = useSyncExternalStore(
+    storageSubscribe,
+    () => true,
+    () => false
+  );
+
+  const rawSavedUser = useSyncExternalStore(
+    storageSubscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
+
+  const [localUserOverride, setLocalUserOverride] = useState<User | null | undefined>(undefined);
+
+  const currentUser: User | null = localUserOverride !== undefined
+    ? localUserOverride
+    : (rawSavedUser ? JSON.parse(rawSavedUser) : null);
+
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -225,7 +245,7 @@ export default function App() {
         setLoginError(data.error || 'Логин ёки парол нотўғри');
         return;
       }
-      setCurrentUser(data.user);
+      setLocalUserOverride(data.user);
       localStorage.setItem('sm_current_user', JSON.stringify(data.user));
       localStorage.setItem('sm_session_time', Date.now().toString());
 
@@ -247,7 +267,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
+    setLocalUserOverride(null);
     localStorage.removeItem('sm_current_user');
     localStorage.removeItem('sm_session_time');
     setActiveView('dashboard');
@@ -391,50 +411,69 @@ export default function App() {
     objectName: string,
     items: any[]
   ) => {
-    // 1. Decrease from central warehouse
+    const isItemMatch = (s: StockItem, it: { materialId?: string; materialName: string }) => {
+      if (it.materialId && s.materialId) {
+        return s.materialId === it.materialId;
+      }
+      return s.materialName.trim().toLowerCase() === it.materialName.trim().toLowerCase();
+    };
+
     for (const it of items) {
-      const centralItem = stocks.find(
-        (s) => s.ownerType === 'admin' && s.materialName.toLowerCase() === it.materialName.toLowerCase()
+      const requestedQty = Number(it.qty) || 0;
+      if (requestedQty <= 0) continue;
+
+      // 1. Locate Sender stock record using senderId (or central/admin)
+      const senderItem = stocks.find(
+        (s) =>
+          (s.ownerId === senderId || (senderId === 'central' && s.ownerType === 'admin')) &&
+          isItemMatch(s, it)
       );
-      if (centralItem) {
-        const currentQty = centralItem.quantity ?? centralItem.qty ?? 0;
-        centralItem.quantity = Math.max(0, currentQty - it.qty);
-        centralItem.qty = centralItem.quantity;
-        centralItem.updatedAt = new Date().toISOString();
-        await syncController.saveItem('stocks', centralItem);
+
+      const currentSenderQty = senderItem ? (senderItem.quantity ?? senderItem.qty ?? 0) : 0;
+      // Deduct only what actually exists to prevent creating stock from nothing
+      const actualTransferQty = Math.min(requestedQty, currentSenderQty);
+
+      if (senderItem) {
+        senderItem.quantity = Math.max(0, currentSenderQty - actualTransferQty);
+        senderItem.qty = senderItem.quantity;
+        senderItem.updatedAt = new Date().toISOString();
+        await syncController.saveItem('stocks', senderItem);
       }
 
-      // 2. Increase or create for prorab's object warehouse
-      const prorabItem = stocks.find(
-        (s) =>
-          s.ownerId === receiverId &&
-          s.objectId === objectId &&
-          s.materialName.toLowerCase() === it.materialName.toLowerCase()
-      );
+      // 2. Increase or create for prorab's object warehouse using actual transferred quantity
+      if (actualTransferQty > 0) {
+        const prorabItem = stocks.find(
+          (s) =>
+            s.ownerId === receiverId &&
+            s.objectId === objectId &&
+            isItemMatch(s, it)
+        );
 
-      if (prorabItem) {
-        const currentQty = prorabItem.quantity ?? prorabItem.qty ?? 0;
-        prorabItem.quantity = currentQty + it.qty;
-        prorabItem.qty = prorabItem.quantity;
-        prorabItem.updatedAt = new Date().toISOString();
-        await syncController.saveItem('stocks', prorabItem);
-      } else {
-        const newStock: StockItem = {
-          id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          materialName: it.materialName,
-          unit: it.unit,
-          quantity: it.qty,
-          qty: it.qty,
-          price: it.price || 0,
-          ownerType: 'prorab',
-          ownerId: receiverId,
-          ownerName: receiverName,
-          ownerOrg: receiverOrg,
-          objectId,
-          objectName,
-          updatedAt: new Date().toISOString(),
-        };
-        await syncController.saveItem('stocks', newStock);
+        if (prorabItem) {
+          const currentQty = prorabItem.quantity ?? prorabItem.qty ?? 0;
+          prorabItem.quantity = currentQty + actualTransferQty;
+          prorabItem.qty = prorabItem.quantity;
+          prorabItem.updatedAt = new Date().toISOString();
+          await syncController.saveItem('stocks', prorabItem);
+        } else {
+          const newStock: StockItem = {
+            id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            materialId: it.materialId || '',
+            materialName: it.materialName.trim(),
+            unit: it.unit,
+            quantity: actualTransferQty,
+            qty: actualTransferQty,
+            price: it.price || 0,
+            ownerType: 'prorab',
+            ownerId: receiverId,
+            ownerName: receiverName,
+            ownerOrg: receiverOrg,
+            objectId,
+            objectName,
+            updatedAt: new Date().toISOString(),
+          };
+          await syncController.saveItem('stocks', newStock);
+        }
       }
     }
     await loadAllData();
@@ -533,7 +572,7 @@ export default function App() {
     },
   ];
 
-  if (isAuthLoading) {
+  if (!isMounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white font-sans">
         <div className="flex flex-col items-center gap-3">
@@ -989,9 +1028,11 @@ export default function App() {
         user={currentUser}
         onClose={() => setIsChangePassOpen(false)}
         onSuccess={() => {
-          const updated = { ...currentUser, isFirstLogin: false };
-          setCurrentUser(updated);
-          localStorage.setItem('sm_current_user', JSON.stringify(updated));
+          if (currentUser) {
+            const updated = { ...currentUser, isFirstLogin: false };
+            setLocalUserOverride(updated);
+            localStorage.setItem('sm_current_user', JSON.stringify(updated));
+          }
         }}
       />
     </div>

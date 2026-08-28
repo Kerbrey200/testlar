@@ -28,6 +28,7 @@ import {
   MaterialItem,
   OrgType,
 } from '@/lib/types';
+import { syncController } from '@/lib/client-api';
 import PrintModal from '../PrintModal';
 
 interface Props {
@@ -147,9 +148,10 @@ export default function ZayavkiView({
     }
 
     const orgToUse = targetObj.org || currentUser.org || 'РМУ';
-    const docNum = `ЗАЯ-${new Date().getFullYear()}-${String(zayavki.length + 1).padStart(3, '0')}`;
+    const currentYear = new Date().getFullYear();
+    const docNum = await syncController.getNextDocNumber('zayavki', currentYear);
     const newZayavka: Zayavka = {
-      id: 'zay_' + Date.now(),
+      id: 'zay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       docNumber: docNum,
       org: orgToUse,
       objectId: targetObj.id,
@@ -159,7 +161,7 @@ export default function ZayavkiView({
       status: 'glinj_upr', // Immediately enters glinj_upr step
       positions: validPositions.map((p, idx) => ({
         ...p,
-        id: p.id || `pos_${idx + 1}_${Date.now()}`,
+        id: p.id || `pos_${idx + 1}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
         materialId: p.materialId || materials.find((m) => m.name.toLowerCase() === p.materialName.toLowerCase())?.id || '',
         approvedQty: p.qty,
         ptoApproved: true,

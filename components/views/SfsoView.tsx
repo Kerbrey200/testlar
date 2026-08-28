@@ -59,18 +59,20 @@ export default function SfsoView({
     if (!invoiceNumber.trim() || !supplierName.trim()) return;
 
     const targetObj = objects.find((o) => o.id === objectId);
+    const parsedTotal = Number(totalSum) || 0;
+    const parsedPaid = Number(paidSum) || 0;
     const newRecord: SfsoRecord = {
-      id: 'sfso_' + Date.now(),
-      invoiceNumber,
+      id: 'sfso_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      invoiceNumber: invoiceNumber.trim(),
       invoiceDate,
-      contractNumber,
-      supplierName,
-      totalSum,
-      paidSum,
-      remainingSum: totalSum - paidSum,
+      contractNumber: contractNumber.trim(),
+      supplierName: supplierName.trim(),
+      totalSum: parsedTotal,
+      paidSum: parsedPaid,
+      remainingSum: Math.round((parsedTotal - parsedPaid) * 100) / 100,
       objectId: targetObj?.id,
       objectName: targetObj?.name,
-      description,
+      description: description.trim(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

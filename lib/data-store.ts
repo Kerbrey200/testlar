@@ -73,6 +73,79 @@ export function writeStore<T>(entity: string, data: T): void {
   }
 }
 
+export function getNextDocNumber(
+  entity: string,
+  yearOrPeriod?: string | number
+): { docNumber: string; counter: number } {
+  ensureDirectories();
+  const normalizedEntity = entity === 'nakladnoylar' ? 'nakladnoy' : entity;
+  const currentYear = new Date().getFullYear();
+  const periodKey = yearOrPeriod ? String(yearOrPeriod) : String(currentYear);
+  const counterKey = `${normalizedEntity}_${periodKey}`;
+
+  const counters = readStore<Record<string, number>>('counters', {
+    zayavki_2026: 3,
+    'hisobotlar_2026-08': 1,
+    nakladnoy_2026: 145,
+    ummZayavki_2026: 12,
+    pmuZayavki_2026: 5,
+    pmuNakladnoy_2026: 81,
+  });
+
+  // If counter doesn't exist yet for this period, initialize based on existing store
+  if (typeof counters[counterKey] !== 'number') {
+    let maxFound = 0;
+    try {
+      const existingItems = readStore<Array<{ docNumber?: string }>>(normalizedEntity, []);
+      for (const item of existingItems) {
+        if (!item.docNumber) continue;
+        const matches = item.docNumber.match(/\d+$/);
+        if (matches && matches[0]) {
+          const num = parseInt(matches[0], 10);
+          if (!isNaN(num) && num > maxFound) {
+            maxFound = num;
+          }
+        }
+      }
+    } catch {
+      maxFound = 0;
+    }
+    counters[counterKey] = maxFound;
+  }
+
+  // Atomically increment counter
+  counters[counterKey] += 1;
+  const nextVal = counters[counterKey];
+  writeStore('counters', counters);
+
+  let docNumber = '';
+  switch (normalizedEntity) {
+    case 'zayavki':
+      docNumber = `ЗАЯ-${periodKey}-${String(nextVal).padStart(3, '0')}`;
+      break;
+    case 'hisobotlar':
+      docNumber = `ОТЧ-${periodKey}/${nextVal}`;
+      break;
+    case 'nakladnoy':
+      docNumber = `ТТН-${periodKey}-${String(nextVal).padStart(3, '0')}`;
+      break;
+    case 'ummZayavki':
+      docNumber = `УММ-${periodKey}-${String(nextVal).padStart(3, '0')}`;
+      break;
+    case 'pmuZayavki':
+      docNumber = `ПМУ-${periodKey}-${String(nextVal).padStart(3, '0')}`;
+      break;
+    case 'pmuNakladnoy':
+      docNumber = `ПМУ-НАКЛ-${String(nextVal).padStart(3, '0')}`;
+      break;
+    default:
+      docNumber = `DOC-${periodKey}-${String(nextVal).padStart(4, '0')}`;
+      break;
+  }
+
+  return { docNumber, counter: nextVal };
+}
+
 export function recordActivity(audit: Omit<ActivityAudit, 'id' | 'timestamp'>): ActivityAudit {
   const activities = readStore<ActivityAudit[]>('activity', []);
   const newEntry: ActivityAudit = {
@@ -110,6 +183,7 @@ export function performAutoBackup(): { success: boolean; filename: string; remov
     'synonyms',
     'invoices',
     'activity',
+    'counters',
   ];
 
   const fullData: Record<string, unknown> = {

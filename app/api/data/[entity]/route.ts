@@ -38,63 +38,102 @@ export async function POST(
     const items = readStore<Array<{ id: string }>>(storeKey, []);
     const existingIndex = items.findIndex((i) => i.id === item.id);
 
-    // Special Business Logic: Nakladnoy approval transfers stocks between warehouses
+    // Special Business Logic: Nakladnoy receipt transfers stocks between warehouses
     if (storeKey === 'nakladnoy') {
       const nakladnoy = item as Nakladnoy;
       const oldNakladnoy = existingIndex >= 0 ? (items[existingIndex] as Nakladnoy) : null;
 
-      // When transitioning to 'approved'
-      if (nakladnoy.status === 'approved' && (!oldNakladnoy || oldNakladnoy.status !== 'approved')) {
+      // When transitioning to 'received' (or 'approved' for backwards compatibility)
+      const isNowReceived = nakladnoy.status === 'received' || nakladnoy.status === 'approved';
+      const wasAlreadyReceived = oldNakladnoy && (oldNakladnoy.status === 'received' || oldNakladnoy.status === 'approved');
+
+      if (isNowReceived && !wasAlreadyReceived && Array.isArray(nakladnoy.items)) {
         const stocks = readStore<StockItem[]>('stocks', []);
+        const senderId = nakladnoy.senderId || 'central';
+        const recipientId = nakladnoy.receiverId || nakladnoy.recipientId || '';
+        const recipientName = nakladnoy.receiverName || nakladnoy.recipientName || '';
+        const recipientOrg = nakladnoy.receiverOrg || nakladnoy.recipientOrg || 'РМУ';
+
+        const isItemMatch = (s: StockItem, it: { materialId?: string; materialName: string }) => {
+          if (it.materialId && s.materialId) {
+            return s.materialId === it.materialId;
+          }
+          return s.materialName.trim().toLowerCase() === it.materialName.trim().toLowerCase();
+        };
 
         for (const it of nakladnoy.items) {
-          // 1. Deduct from Sender
+          const requestedQty = Number(it.qty) || 0;
+          if (requestedQty <= 0) continue;
+
+          // 1. Find Sender stock
           const senderStockIndex = stocks.findIndex(
-            (s) => s.ownerId === nakladnoy.senderId && (s.materialId === it.materialId || s.materialName === it.materialName)
+            (s) =>
+              (s.ownerId === senderId || (senderId === 'central' && s.ownerType === 'admin')) &&
+              isItemMatch(s, it)
           );
+
+          const currentSenderQty = senderStockIndex >= 0
+            ? (stocks[senderStockIndex].quantity ?? stocks[senderStockIndex].qty ?? 0)
+            : 0;
+
+          // Deduct only what is actually available - no phantom quantities!
+          const actualTransferQty = Math.min(requestedQty, currentSenderQty);
+
           if (senderStockIndex >= 0) {
-            const currentQty = stocks[senderStockIndex].quantity ?? stocks[senderStockIndex].qty ?? 0;
-            stocks[senderStockIndex].quantity = Math.max(0, currentQty - it.qty);
-            stocks[senderStockIndex].qty = stocks[senderStockIndex].quantity;
+            const newSenderQty = Math.max(0, currentSenderQty - actualTransferQty);
+            stocks[senderStockIndex].quantity = newSenderQty;
+            stocks[senderStockIndex].qty = newSenderQty;
             stocks[senderStockIndex].updatedAt = new Date().toISOString();
-          } else {
-            // If sender didn't have explicit record, create one with 0
-            stocks.push({
-              id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-              ownerType: nakladnoy.senderType || 'admin',
-              ownerId: nakladnoy.senderId,
-              ownerName: nakladnoy.senderName,
-              materialId: it.materialId || '',
-              materialName: it.materialName,
-              unit: it.unit,
-              quantity: 0,
-              qty: 0,
-              updatedAt: new Date().toISOString(),
+          }
+
+          if (actualTransferQty < requestedQty) {
+            recordActivity({
+              action: 'stock.insufficient_transfer',
+              userId: auditInfo?.userId || 'system',
+              userLogin: auditInfo?.userLogin || 'system',
+              userName: auditInfo?.userName || 'Система',
+              userRole: auditInfo?.userRole || 'admin',
+              userOrg: auditInfo?.userOrg || 'СО',
+              details: `Омборда қолдиқ етишмади: "${it.materialName}" бўйича сўралган ${requestedQty} ${it.unit}, аммо мавжуд фақат ${actualTransferQty} ${it.unit} ўтказилди`,
+              entityType: 'nakladnoy',
+              entityId: nakladnoy.id,
             });
           }
 
-          // 2. Add to Recipient
-          const recipientStockIndex = stocks.findIndex(
-            (s) => s.ownerId === nakladnoy.recipientId && (s.materialId === it.materialId || s.materialName === it.materialName)
-          );
-          if (recipientStockIndex >= 0) {
-            const currentQty = stocks[recipientStockIndex].quantity ?? stocks[recipientStockIndex].qty ?? 0;
-            stocks[recipientStockIndex].quantity = currentQty + it.qty;
-            stocks[recipientStockIndex].qty = stocks[recipientStockIndex].quantity;
-            stocks[recipientStockIndex].updatedAt = new Date().toISOString();
-          } else {
-            stocks.push({
-              id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-              ownerType: nakladnoy.recipientType || 'prorab',
-              ownerId: nakladnoy.recipientId || '',
-              ownerName: nakladnoy.recipientName || '',
-              materialId: it.materialId || '',
-              materialName: it.materialName,
-              unit: it.unit,
-              quantity: it.qty,
-              qty: it.qty,
-              updatedAt: new Date().toISOString(),
-            });
+          // 2. Add only the actual transferred quantity to Recipient
+          if (actualTransferQty > 0) {
+            const recipientStockIndex = stocks.findIndex(
+              (s) =>
+                s.ownerId === recipientId &&
+                (nakladnoy.objectId ? s.objectId === nakladnoy.objectId : true) &&
+                isItemMatch(s, it)
+            );
+
+            if (recipientStockIndex >= 0) {
+              const currentRecipientQty =
+                stocks[recipientStockIndex].quantity ?? stocks[recipientStockIndex].qty ?? 0;
+              const newRecipientQty = currentRecipientQty + actualTransferQty;
+              stocks[recipientStockIndex].quantity = newRecipientQty;
+              stocks[recipientStockIndex].qty = newRecipientQty;
+              stocks[recipientStockIndex].updatedAt = new Date().toISOString();
+            } else {
+              stocks.push({
+                id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                ownerType: nakladnoy.receiverOrg ? 'prorab' : (nakladnoy.recipientType || 'prorab'),
+                ownerId: recipientId,
+                ownerName: recipientName,
+                ownerOrg: recipientOrg,
+                objectId: nakladnoy.objectId,
+                objectName: nakladnoy.objectName,
+                materialId: it.materialId || '',
+                materialName: it.materialName.trim(),
+                unit: it.unit,
+                quantity: actualTransferQty,
+                qty: actualTransferQty,
+                price: it.price || 0,
+                updatedAt: new Date().toISOString(),
+              });
+            }
           }
         }
 

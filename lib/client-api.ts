@@ -177,6 +177,61 @@ export async function syncPendingQueue(user?: User | null): Promise<boolean> {
   }
 }
 
+// Monotonically increasing unique document numbering
+export async function fetchNextDocNumber(
+  entity: string,
+  period?: string | number
+): Promise<string> {
+  const currentYear = new Date().getFullYear();
+  const periodStr = period ? String(period) : String(currentYear);
+  const normalizedEntity = entity === 'nakladnoylar' ? 'nakladnoy' : entity;
+
+  try {
+    const res = await fetch(`/api/next-doc-number?entity=${encodeURIComponent(normalizedEntity)}&period=${encodeURIComponent(periodStr)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.docNumber) {
+        return data.docNumber;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch doc number from server, falling back to local counter:', err);
+  }
+
+  // Offline fallback counter from localStorage
+  const localKey = `sm_counter_${normalizedEntity}_${periodStr}`;
+  let currentVal = 1;
+  try {
+    const saved = localStorage.getItem(localKey);
+    if (saved) {
+      currentVal = parseInt(saved, 10) + 1;
+    }
+    localStorage.setItem(localKey, currentVal.toString());
+  } catch {
+    currentVal = Date.now() % 10000;
+  }
+
+  switch (normalizedEntity) {
+    case 'zayavki':
+      return `ЗАЯ-${periodStr}-${String(currentVal).padStart(3, '0')}`;
+    case 'hisobotlar':
+      return `ОТЧ-${periodStr}/${currentVal}`;
+    case 'nakladnoy':
+      return `ТТН-${periodStr}-${String(currentVal).padStart(3, '0')}`;
+    case 'ummZayavki':
+      return `УММ-${periodStr}-${String(currentVal).padStart(3, '0')}`;
+    case 'pmuZayavki':
+      return `ПМУ-${periodStr}-${String(currentVal).padStart(3, '0')}`;
+    case 'pmuNakladnoy':
+      return `ПМУ-НАКЛ-${String(currentVal).padStart(3, '0')}`;
+    default:
+      return `DOC-${periodStr}-${String(currentVal).padStart(4, '0')}`;
+  }
+}
+
 // Global sync controller wrapper
 export const syncController = {
   getAll: async <T extends { id: string }>(entity: StoreName): Promise<T[]> => {
@@ -196,6 +251,9 @@ export const syncController = {
     const userStr = typeof window !== 'undefined' ? localStorage.getItem('sm_current_user') : null;
     const user: User | undefined = userStr ? JSON.parse(userStr) : undefined;
     await deleteEntityData(entity, id, user, details);
+  },
+  getNextDocNumber: async (entity: string, period?: string | number): Promise<string> => {
+    return fetchNextDocNumber(entity, period);
   },
   getPendingCount: async (): Promise<number> => {
     const queue = await getSyncQueue();

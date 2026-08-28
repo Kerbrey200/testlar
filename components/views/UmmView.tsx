@@ -23,6 +23,7 @@ import {
   ConstructionObject,
   MechanismCatalogueItem,
 } from '@/lib/types';
+import { syncController } from '@/lib/client-api';
 import PrintModal from '../PrintModal';
 
 interface Props {
@@ -100,9 +101,10 @@ export default function UmmView({
     if (!targetObj) return;
 
     const orgToUse = targetObj.org || currentUser.org || 'РМУ';
-    const docNum = `УММ-${new Date().getFullYear()}-${String(ummZayavki.length + 1).padStart(3, '0')}`;
+    const currentYear = new Date().getFullYear();
+    const docNum = await syncController.getNextDocNumber('ummZayavki', currentYear);
     const newUmm: UmmZayavka = {
-      id: 'umm_' + Date.now(),
+      id: 'umm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       docNumber: docNum,
       org: orgToUse,
       objectId: targetObj.id,

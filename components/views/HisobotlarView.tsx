@@ -26,6 +26,7 @@ import {
   ConstructionObject,
   MaterialItem,
 } from '@/lib/types';
+import { syncController } from '@/lib/client-api';
 import PrintModal from '../PrintModal';
 
 interface Props {
@@ -210,9 +211,9 @@ export default function HisobotlarView({
     }
 
     const orgToUse = targetObj.org || currentUser.org || 'РМУ';
-    const docNum = `ОТЧ-${periodMonth}/${hisobotlar.length + 1}`;
+    const docNum = await syncController.getNextDocNumber('hisobotlar', periodMonth);
     const newHisobot: Hisobot = {
-      id: 'his_' + Date.now(),
+      id: 'his_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       docNumber: docNum,
       org: orgToUse,
       objectId: targetObj.id,
@@ -221,10 +222,18 @@ export default function HisobotlarView({
       prorabName: currentUser.fullName,
       periodMonth,
       status: 'new',
-      rows: validRows.map((r) => ({
-        ...r,
-        differenceQty: (r.spisanieQty || r.factQty) - r.factQty,
-      })),
+      rows: validRows.map((r) => {
+        const fact = Number(r.factQty) || 0;
+        const spisanie = Number(r.spisanieQty || r.factQty) || 0;
+        const diff = Math.round((spisanie - fact) * 1000) / 1000;
+        return {
+          ...r,
+          id: r.id || `row_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+          factQty: fact,
+          spisanieQty: spisanie,
+          differenceQty: diff,
+        };
+      }),
       prorabSignedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -260,7 +269,7 @@ export default function HisobotlarView({
   const handleBuhApprove = async (report: Hisobot) => {
     const updatedRows = report.rows.map((r) => ({
       ...r,
-      differenceQty: r.spisanieQty - r.factQty,
+      differenceQty: Math.round(((Number(r.spisanieQty) || 0) - (Number(r.factQty) || 0)) * 1000) / 1000,
     }));
 
     const updated: Hisobot = {
@@ -914,7 +923,8 @@ export default function HisobotlarView({
                                   const val = parseFloat(e.target.value) || 0;
                                   const updated = { ...selectedHisobot };
                                   updated.rows[idx].spisanieQty = val;
-                                  updated.rows[idx].differenceQty = val - updated.rows[idx].factQty;
+                                  const fact = Number(updated.rows[idx].factQty) || 0;
+                                  updated.rows[idx].differenceQty = Math.round((val - fact) * 1000) / 1000;
                                   setSelectedHisobot(updated);
                                 }}
                                 className="w-20 rounded border border-purple-300 bg-white p-1 text-right font-bold text-purple-700 outline-none"

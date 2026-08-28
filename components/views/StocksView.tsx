@@ -55,23 +55,54 @@ export default function StocksView({
     e.preventDefault();
     if (!materialName.trim() || quantity <= 0) return;
 
-    const newStock: StockItem = {
-      id: 'stk_' + Date.now(),
-      materialName,
-      unit,
-      quantity,
-      price,
-      ownerType: 'admin',
-      ownerId: currentUser.id,
-      ownerName: 'Марказий Омбор (СО)',
-      updatedAt: new Date().toISOString(),
-    };
+    const trimmedName = materialName.trim();
+    const matchedMat = materials.find((m) => m.name.toLowerCase() === trimmedName.toLowerCase());
+    const matId = matchedMat?.id || '';
 
-    await onSaveStock(
-      newStock,
-      'stock.add_central',
-      `Марказий омборга янги материал кирим қилинди: ${materialName} (${quantity} ${unit})`
+    // Check if item already exists in Central warehouse
+    const existingStock = stocks.find(
+      (s) =>
+        s.ownerType === 'admin' &&
+        (matId && s.materialId ? s.materialId === matId : s.materialName.toLowerCase() === trimmedName.toLowerCase())
     );
+
+    if (existingStock) {
+      const currentQty = existingStock.quantity ?? existingStock.qty ?? 0;
+      const updatedStock: StockItem = {
+        ...existingStock,
+        materialId: matId || existingStock.materialId,
+        quantity: currentQty + quantity,
+        qty: currentQty + quantity,
+        price: price || existingStock.price,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await onSaveStock(
+        updatedStock,
+        'stock.add_central',
+        `Марказий омбордаги мавжуд қолдиқ оширилди: ${trimmedName} (+${quantity} ${unit}, жами: ${updatedStock.quantity} ${unit})`
+      );
+    } else {
+      const newStock: StockItem = {
+        id: 'stk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        materialId: matId,
+        materialName: trimmedName,
+        unit,
+        quantity,
+        qty: quantity,
+        price,
+        ownerType: 'admin',
+        ownerId: currentUser.id,
+        ownerName: 'Марказий Омбор (СО)',
+        updatedAt: new Date().toISOString(),
+      };
+
+      await onSaveStock(
+        newStock,
+        'stock.add_central',
+        `Марказий омборга янги материал кирим қилинди: ${trimmedName} (${quantity} ${unit})`
+      );
+    }
 
     setIsAddOpen(false);
     setMaterialName('');

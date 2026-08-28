@@ -22,6 +22,7 @@ import {
   PmuStatus,
   ConstructionObject,
 } from '@/lib/types';
+import { syncController } from '@/lib/client-api';
 import PrintModal from '../PrintModal';
 
 interface Props {
@@ -97,9 +98,10 @@ export default function PmuView({
     if (!targetObj) return;
 
     const orgToUse = targetObj.org || currentUser.org || 'РМУ';
-    const docNum = `ПМУ-${new Date().getFullYear()}-${String(pmuZayavki.length + 1).padStart(3, '0')}`;
+    const currentYear = new Date().getFullYear();
+    const docNum = await syncController.getNextDocNumber('pmuZayavki', currentYear);
     const newPmu: PmuZayavka = {
-      id: 'pmu_' + Date.now(),
+      id: 'pmu_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       docNumber: docNum,
       org: orgToUse,
       objectId: targetObj.id,
@@ -109,6 +111,7 @@ export default function PmuView({
       itemName,
       dimensions,
       quantity,
+      qty: quantity,
       unit,
       drawingNumber,
       deadline,
