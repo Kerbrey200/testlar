@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   ChevronRight,
   Upload,
+  Edit2,
+  Building,
 } from 'lucide-react';
 import {
   User,
@@ -46,6 +48,11 @@ export default function PmuView({
   const [rejectModal, setRejectModal] = useState<PmuZayavka | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
+  // Object Change Modal
+  const [isEditObjectOpen, setIsEditObjectOpen] = useState(false);
+  const [targetObjectToChange, setTargetObjectToChange] = useState<PmuZayavka | null>(null);
+  const [newSelectedObjectId, setNewSelectedObjectId] = useState('');
+
   // New PMU Form
   const [objectId, setObjectId] = useState('');
   const [itemName, setItemName] = useState('');
@@ -57,19 +64,24 @@ export default function PmuView({
   const [note, setNote] = useState('');
 
   const isBoshqarma = ['glinj_upr', 'nach_upr', 'pto_upr', 'buh_upr'].includes(currentUser.rol);
+  const canCreate = ['prorab', 'admin', 'pto_upr', 'glinj_upr', 'pto_so', 'dispatcher', 'nach_pmu', 'nach_upr'].includes(currentUser.rol);
 
   const visibleList = pmuZayavki.filter((p) => {
-    if (isBoshqarma && p.org !== currentUser.org) return false;
-    if (currentUser.rol === 'prorab' && p.prorabId !== currentUser.id && p.org !== currentUser.org) return false;
+    if (isBoshqarma && currentUser.org && p.org && p.org !== currentUser.org) return false;
+    if (currentUser.rol === 'prorab') {
+      const isMine = p.prorabId === currentUser.id || (p.prorabName && p.prorabName.toLowerCase().includes(currentUser.fullName.toLowerCase()));
+      const isSameOrg = currentUser.org && p.org === currentUser.org;
+      if (!isMine && !isSameOrg) return false;
+    }
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.trim().toLowerCase();
       const itemTitle = (p.itemName || p.constructionName || '').toLowerCase();
       return (
-        p.docNumber.toLowerCase().includes(q) ||
-        p.objectName.toLowerCase().includes(q) ||
+        p.docNumber?.toLowerCase().includes(q) ||
+        p.objectName?.toLowerCase().includes(q) ||
         itemTitle.includes(q) ||
-        p.prorabName.toLowerCase().includes(q)
+        p.prorabName?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -84,11 +96,12 @@ export default function PmuView({
     const targetObj = objects.find((o) => o.id === objectId);
     if (!targetObj) return;
 
+    const orgToUse = targetObj.org || currentUser.org || 'РМУ';
     const docNum = `ПМУ-${new Date().getFullYear()}-${String(pmuZayavki.length + 1).padStart(3, '0')}`;
     const newPmu: PmuZayavka = {
       id: 'pmu_' + Date.now(),
       docNumber: docNum,
-      org: currentUser.org,
+      org: orgToUse,
       objectId: targetObj.id,
       objectName: targetObj.name,
       prorabId: currentUser.id,
@@ -185,6 +198,53 @@ export default function PmuView({
     if (selectedPmu?.id === updated.id) setSelectedPmu(updated);
   };
 
+  const canEditObject = (p: PmuZayavka) => {
+    if (currentUser.rol === 'admin') return true;
+    if (p.status === 'done') return false;
+    if (currentUser.rol === 'prorab' && (p.prorabId === currentUser.id || p.org === currentUser.org)) return true;
+    if (['glinj_upr', 'nach_upr', 'pto_upr', 'pto_so', 'glinj_so', 'nach_pmu'].includes(currentUser.rol)) return true;
+    return false;
+  };
+
+  const handleOpenChangeObject = (p: PmuZayavka, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTargetObjectToChange(p);
+    setNewSelectedObjectId(p.objectId || '');
+    setIsEditObjectOpen(true);
+  };
+
+  const handleSaveChangedObject = async () => {
+    if (!targetObjectToChange || !newSelectedObjectId) {
+      alert('Илтимос, қурилиш объектини танланг');
+      return;
+    }
+    const newObj = objects.find((o) => o.id === newSelectedObjectId);
+    if (!newObj) return;
+
+    const oldName = targetObjectToChange.objectName;
+    const updated: PmuZayavka = {
+      ...targetObjectToChange,
+      objectId: newObj.id,
+      objectName: newObj.name,
+      org: newObj.org || targetObjectToChange.org,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await onSavePmuZayavka(
+      updated,
+      'pmu.change_object',
+      `ПМУ талабномаси объекти ўзгартирилди: ${targetObjectToChange.docNumber} ("${oldName}" ➔ "${newObj.name}")`
+    );
+
+    if (selectedPmu?.id === updated.id) {
+      setSelectedPmu(updated);
+    }
+    setIsEditObjectOpen(false);
+    setTargetObjectToChange(null);
+    setNewSelectedObjectId('');
+    alert(`Қурилиш объекти муваффақиятли "${newObj.name}" га ўзгартирилди!`);
+  };
+
   const renderStatusBadge = (status: PmuStatus) => {
     switch (status) {
       case 'new':
@@ -236,7 +296,7 @@ export default function PmuView({
           </p>
         </div>
 
-        {currentUser.rol === 'prorab' && (
+        {canCreate && (
           <button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-purple-700 transition shrink-0"
@@ -311,6 +371,15 @@ export default function PmuView({
                   <td className="px-4 py-3.5">{renderStatusBadge(p.status)}</td>
                   <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
+                      {canEditObject(p) && (
+                        <button
+                          onClick={(e) => handleOpenChangeObject(p, e)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-purple-600 transition"
+                          title="Объектни ўзгартириш"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setSelectedPmu(p);
@@ -502,13 +571,56 @@ export default function PmuView({
             </div>
 
             <div className="p-6 space-y-5 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <div><strong>Буюртмачи Прораб:</strong> {selectedPmu.prorabName}</div>
-                <div><strong>Керакли муддат:</strong> {selectedPmu.deadline}</div>
-                <div><strong>Маҳсулот:</strong> <span className="font-bold text-purple-700">{selectedPmu.itemName}</span></div>
-                <div><strong>Миқдор:</strong> <span className="font-bold text-blue-700">{selectedPmu.quantity} {selectedPmu.unit}</span></div>
-                <div><strong>Чизма рақами:</strong> {selectedPmu.drawingNumber || '-'}</div>
-                <div><strong>Ўлчамлари:</strong> {selectedPmu.dimensions || '-'}</div>
+              {/* Document Overview with Object Change Action */}
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Буюртмачи Прораб</span>
+                    <p className="font-semibold text-slate-800">{selectedPmu.prorabName} ({selectedPmu.org})</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Керакли муддат</span>
+                    <p className="font-semibold text-slate-800">{selectedPmu.deadline}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Чизма рақами</span>
+                    <p className="font-mono text-slate-800">{selectedPmu.drawingNumber || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Маҳсулот</span>
+                    <p className="font-bold text-purple-700">{selectedPmu.itemName}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Миқдор</span>
+                    <p className="font-bold text-blue-700">{selectedPmu.quantity} {selectedPmu.unit}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Ўлчамлари</span>
+                    <p className="text-slate-700">{selectedPmu.dimensions || '-'}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Бириктирилган Қурилиш Объекти</span>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm mt-0.5">
+                      <Building className="h-4 w-4 text-purple-600 shrink-0" />
+                      <span>{selectedPmu.objectName}</span>
+                      <span className="text-xs font-normal text-slate-500">({selectedPmu.org})</span>
+                    </div>
+                  </div>
+
+                  {canEditObject(selectedPmu) && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenChangeObject(selectedPmu)}
+                      className="flex items-center gap-1.5 rounded-xl bg-purple-50 border border-purple-200 px-3.5 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition shadow-2xs"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span>Объектни ўзгартириш</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Progress Steps */}
@@ -608,6 +720,69 @@ export default function PmuView({
             <div className="flex items-center justify-end gap-2 mt-4">
               <button onClick={() => setRejectModal(null)} className="px-4 py-2 text-xs text-slate-600">Бекор</button>
               <button onClick={handleRejectSubmit} className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white">Рад этиш</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE OBJECT MODAL */}
+      {isEditObjectOpen && targetObjectToChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Building className="h-5 w-5 text-purple-600" />
+                <span>ПМУ буюртмаси объектини ўзгартириш</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <p className="text-slate-500">Ҳужжат: <strong className="text-slate-900">{targetObjectToChange.docNumber}</strong></p>
+                <p className="text-slate-500 mt-1">Ҳозирги объект: <strong className="text-purple-700">{targetObjectToChange.objectName}</strong> ({targetObjectToChange.org})</p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] uppercase font-bold text-slate-600 mb-1.5">
+                  Янги қурилиш объектини танланг *
+                </label>
+                <select
+                  value={newSelectedObjectId}
+                  onChange={(e) => setNewSelectedObjectId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-semibold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                >
+                  <option value="">-- Янги объектни танланг --</option>
+                  {objects.map((obj) => (
+                    <option key={obj.id} value={obj.id}>
+                      {obj.name} ({obj.org})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Бекор қилиш
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveChangedObject}
+                className="rounded-xl bg-purple-600 px-5 py-2 text-xs font-bold text-white hover:bg-purple-700 shadow-md transition"
+              >
+                Сақлаш ва ўзгартириш
+              </button>
             </div>
           </div>
         </div>

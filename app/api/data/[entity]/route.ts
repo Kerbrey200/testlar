@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readStore, writeStore, recordActivity, seedInitialDataIfNeeded } from '@/lib/data-store';
 import { Nakladnoy, StockItem } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ entity: string }> }
@@ -9,7 +11,8 @@ export async function GET(
   try {
     seedInitialDataIfNeeded();
     const { entity } = await params;
-    const data = readStore<unknown[]>(entity, []);
+    const storeKey = entity === 'nakladnoylar' ? 'nakladnoy' : entity;
+    const data = readStore<unknown[]>(storeKey, []);
     return NextResponse.json(data);
   } catch (error) {
     console.error('GET entity error:', error);
@@ -24,6 +27,7 @@ export async function POST(
   try {
     seedInitialDataIfNeeded();
     const { entity } = await params;
+    const storeKey = entity === 'nakladnoylar' ? 'nakladnoy' : entity;
     const body = await req.json();
     const { item, auditInfo } = body;
 
@@ -31,11 +35,11 @@ export async function POST(
       return NextResponse.json({ error: 'Item data required' }, { status: 400 });
     }
 
-    const items = readStore<Array<{ id: string }>>(entity, []);
+    const items = readStore<Array<{ id: string }>>(storeKey, []);
     const existingIndex = items.findIndex((i) => i.id === item.id);
 
     // Special Business Logic: Nakladnoy approval transfers stocks between warehouses
-    if (entity === 'nakladnoy') {
+    if (storeKey === 'nakladnoy') {
       const nakladnoy = item as Nakladnoy;
       const oldNakladnoy = existingIndex >= 0 ? (items[existingIndex] as Nakladnoy) : null;
 
@@ -104,19 +108,19 @@ export async function POST(
       items.unshift(item);
     }
 
-    writeStore(entity, items);
+    writeStore(storeKey, items);
 
     // Record audit if provided
     if (auditInfo) {
       recordActivity({
-        action: auditInfo.action || `${entity}.update`,
+        action: auditInfo.action || `${storeKey}.update`,
         userId: auditInfo.userId || 'system',
         userLogin: auditInfo.userLogin || 'system',
         userName: auditInfo.userName || 'System',
         userRole: auditInfo.userRole || 'admin',
         userOrg: auditInfo.userOrg || 'СО',
-        details: auditInfo.details || `Item ${item.id} updated in ${entity}`,
-        entityType: entity,
+        details: auditInfo.details || `Item ${item.id} updated in ${storeKey}`,
+        entityType: storeKey,
         entityId: item.id,
       });
     }
@@ -135,6 +139,7 @@ export async function DELETE(
   try {
     seedInitialDataIfNeeded();
     const { entity } = await params;
+    const storeKey = entity === 'nakladnoylar' ? 'nakladnoy' : entity;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -142,9 +147,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     }
 
-    const items = readStore<Array<{ id: string }>>(entity, []);
+    const items = readStore<Array<{ id: string }>>(storeKey, []);
     const filtered = items.filter((i) => i.id !== id);
-    writeStore(entity, filtered);
+    writeStore(storeKey, filtered);
 
     return NextResponse.json({ success: true, deletedId: id });
   } catch (error) {

@@ -58,6 +58,11 @@ export default function ZayavkiView({
   const [printZayavka, setPrintZayavka] = useState<Zayavka | null>(null);
   const [rejectReasonModal, setRejectReasonModal] = useState<Zayavka | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  
+  // Object Change Modal state
+  const [isEditObjectOpen, setIsEditObjectOpen] = useState(false);
+  const [targetObjectToChange, setTargetObjectToChange] = useState<Zayavka | null>(null);
+  const [newSelectedObjectId, setNewSelectedObjectId] = useState('');
 
   // Snab SO modal fields
   const [contractNo, setContractNo] = useState('');
@@ -74,26 +79,40 @@ export default function ZayavkiView({
 
   // Check Org visibility rule: Boshqarma employees only see their own org, SO & admin see all
   const isBoshqarma = ['glinj_upr', 'nach_upr', 'pto_upr', 'buh_upr'].includes(currentUser.rol);
+  const canCreate = ['prorab', 'admin', 'pto_upr', 'glinj_upr', 'pto_so', 'nach_upr'].includes(currentUser.rol);
 
   const visibleZayavki = zayavki.filter((z) => {
-    // Org restriction
-    if (isBoshqarma && z.org !== currentUser.org) return false;
-    // Prorab filter if preferred
-    if (currentUser.rol === 'prorab' && z.prorabId !== currentUser.id && z.org !== currentUser.org) return false;
+    // Org restriction for boshqarma employees
+    if (isBoshqarma && currentUser.org && z.org && z.org !== currentUser.org) {
+      return false;
+    }
+    // Prorab filter: can see own zayavki or zayavki from their org
+    if (currentUser.rol === 'prorab') {
+      const isMine = z.prorabId === currentUser.id || (z.prorabName && z.prorabName.toLowerCase().includes(currentUser.fullName.toLowerCase()));
+      const isSameOrg = currentUser.org && z.org === currentUser.org;
+      if (!isMine && !isSameOrg) return false;
+    }
     
     // Status filter
-    if (statusFilter !== 'all' && z.status !== statusFilter) return false;
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'glinj_upr') {
+        if (z.status !== 'glinj_upr' && z.status !== 'new') return false;
+      } else if (z.status !== statusFilter) {
+        return false;
+      }
+    }
+
     // Org dropdown filter for SO / Admin
     if (orgFilter !== 'all' && z.org !== orgFilter) return false;
+
     // Search
     if (search.trim()) {
-      const q = search.toLowerCase();
-      return (
-        z.docNumber.toLowerCase().includes(q) ||
-        z.objectName.toLowerCase().includes(q) ||
-        z.prorabName.toLowerCase().includes(q) ||
-        z.positions.some((p) => p.materialName.toLowerCase().includes(q))
-      );
+      const q = search.trim().toLowerCase();
+      const matchDoc = z.docNumber?.toLowerCase().includes(q);
+      const matchObj = z.objectName?.toLowerCase().includes(q);
+      const matchProrab = z.prorabName?.toLowerCase().includes(q);
+      const matchPositions = z.positions?.some((p) => p.materialName?.toLowerCase().includes(q));
+      if (!matchDoc && !matchObj && !matchProrab && !matchPositions) return false;
     }
     return true;
   });
@@ -102,7 +121,7 @@ export default function ZayavkiView({
   const addPositionRow = () => {
     setPositions([
       ...positions,
-      { id: 'pos_' + Date.now(), materialName: '', unit: 'тн', qty: 1, note: '' },
+      { id: 'pos_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5), materialName: '', unit: 'тн', qty: 1, note: '' },
     ]);
   };
 
@@ -121,24 +140,27 @@ export default function ZayavkiView({
     const targetObj = objects.find((o) => o.id === selectedObjectId);
     if (!targetObj) return;
 
-    const validPositions = positions.filter((p) => p.materialName.trim() && p.qty > 0);
+    const validPositions = positions.filter((p) => p.materialName && p.materialName.trim() && (p.qty || 0) > 0);
     if (validPositions.length === 0) {
       alert('Камида битта позиция тўлдирилиши шарт');
       return;
     }
 
+    const orgToUse = targetObj.org || currentUser.org || 'РМУ';
     const docNum = `ЗАЯ-${new Date().getFullYear()}-${String(zayavki.length + 1).padStart(3, '0')}`;
     const newZayavka: Zayavka = {
       id: 'zay_' + Date.now(),
       docNumber: docNum,
-      org: currentUser.org,
+      org: orgToUse,
       objectId: targetObj.id,
       objectName: targetObj.name,
       prorabId: currentUser.id,
       prorabName: currentUser.fullName,
       status: 'glinj_upr', // Immediately enters glinj_upr step
-      positions: validPositions.map((p) => ({
+      positions: validPositions.map((p, idx) => ({
         ...p,
+        id: p.id || `pos_${idx + 1}_${Date.now()}`,
+        materialId: p.materialId || materials.find((m) => m.name.toLowerCase() === p.materialName.toLowerCase())?.id || '',
         approvedQty: p.qty,
         ptoApproved: true,
       })),
@@ -256,6 +278,53 @@ export default function ZayavkiView({
     }
   };
 
+  const canEditObject = (z: Zayavka) => {
+    if (currentUser.rol === 'admin') return true;
+    if (z.status === 'snab_so' && z.contractNumber) return false;
+    if (currentUser.rol === 'prorab' && (z.prorabId === currentUser.id || z.org === currentUser.org)) return true;
+    if (['glinj_upr', 'nach_upr', 'pto_upr', 'pto_so', 'glinj_so'].includes(currentUser.rol)) return true;
+    return false;
+  };
+
+  const handleOpenChangeObject = (z: Zayavka, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTargetObjectToChange(z);
+    setNewSelectedObjectId(z.objectId || '');
+    setIsEditObjectOpen(true);
+  };
+
+  const handleSaveChangedObject = async () => {
+    if (!targetObjectToChange || !newSelectedObjectId) {
+      alert('Илтимос, қурилиш объектини танланг');
+      return;
+    }
+    const newObj = objects.find((o) => o.id === newSelectedObjectId);
+    if (!newObj) return;
+
+    const oldName = targetObjectToChange.objectName;
+    const updated: Zayavka = {
+      ...targetObjectToChange,
+      objectId: newObj.id,
+      objectName: newObj.name,
+      org: newObj.org || targetObjectToChange.org,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await onSaveZayavka(
+      updated,
+      'zayavka.change_object',
+      `Заявка объекти ўзгартирилди: ${targetObjectToChange.docNumber} ("${oldName}" ➔ "${newObj.name}")`
+    );
+
+    if (selectedZayavka?.id === updated.id) {
+      setSelectedZayavka(updated);
+    }
+    setIsEditObjectOpen(false);
+    setTargetObjectToChange(null);
+    setNewSelectedObjectId('');
+    alert(`Заявка объекти муваффақиятли "${newObj.name}" га ўзгартирилди!`);
+  };
+
   const handleDelete = async (zay: Zayavka) => {
     const canDelete =
       currentUser.rol === 'admin' ||
@@ -332,7 +401,7 @@ export default function ZayavkiView({
           </p>
         </div>
 
-        {currentUser.rol === 'prorab' && (
+        {canCreate && (
           <button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition shrink-0"
@@ -432,6 +501,15 @@ export default function ZayavkiView({
                   </td>
                   <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
+                      {canEditObject(zay) && (
+                        <button
+                          onClick={(e) => handleOpenChangeObject(zay, e)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition"
+                          title="Объектни ўзгартириш"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setSelectedZayavka(zay);
@@ -497,13 +575,14 @@ export default function ZayavkiView({
                     className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">-- Объектни танланг --</option>
-                    {objects
-                      .filter((o) => o.org === currentUser.org || currentUser.rol === 'admin')
-                      .map((obj) => (
-                        <option key={obj.id} value={obj.id}>
-                          {obj.name} ({obj.org})
-                        </option>
-                      ))}
+                    {(objects.filter((o) => o.org === currentUser.org || currentUser.rol === 'admin' || !currentUser.org).length > 0
+                      ? objects.filter((o) => o.org === currentUser.org || currentUser.rol === 'admin' || !currentUser.org)
+                      : objects
+                    ).map((obj) => (
+                      <option key={obj.id} value={obj.id}>
+                        {obj.name} ({obj.org})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -686,6 +765,46 @@ export default function ZayavkiView({
                   <p><strong>Сабаб:</strong> {selectedZayavka.rejectionReason}</p>
                 </div>
               )}
+
+              {/* Document Overview with Object Change Action */}
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Бошқарма</span>
+                    <p className="font-semibold text-slate-800">{selectedZayavka.org}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Прораб / Сўровчи</span>
+                    <p className="font-semibold text-slate-800">{selectedZayavka.prorabName}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Яратилган сана</span>
+                    <p className="font-semibold text-slate-800">{new Date(selectedZayavka.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Бириктирилган Қурилиш Объекти</span>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm mt-0.5">
+                      <Building className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span>{selectedZayavka.objectName}</span>
+                      <span className="text-xs font-normal text-slate-500">({selectedZayavka.org})</span>
+                    </div>
+                  </div>
+
+                  {canEditObject(selectedZayavka) && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenChangeObject(selectedZayavka)}
+                      className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition shadow-2xs"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span>Объектни ўзгартириш</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Progress Steps Indicator */}
               <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
@@ -1009,6 +1128,69 @@ export default function ZayavkiView({
                 className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white hover:bg-rose-700"
               >
                 Рад этишни тасдиқлаш
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE OBJECT MODAL */}
+      {isEditObjectOpen && targetObjectToChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Building className="h-5 w-5 text-blue-600" />
+                <span>Қурилиш объектини ўзгартириш</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <p className="text-slate-500">Ҳужжат рақами: <strong className="text-slate-900">{targetObjectToChange.docNumber}</strong></p>
+                <p className="text-slate-500 mt-1">Ҳозирги объект: <strong className="text-blue-700">{targetObjectToChange.objectName}</strong> ({targetObjectToChange.org})</p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] uppercase font-bold text-slate-600 mb-1.5">
+                  Янги қурилиш объектини танланг *
+                </label>
+                <select
+                  value={newSelectedObjectId}
+                  onChange={(e) => setNewSelectedObjectId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">-- Янги объектни танланг --</option>
+                  {objects.map((obj) => (
+                    <option key={obj.id} value={obj.id}>
+                      {obj.name} ({obj.org})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Бекор қилиш
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveChangedObject}
+                className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-md transition"
+              >
+                Сақлаш ва ўзгартириш
               </button>
             </div>
           </div>

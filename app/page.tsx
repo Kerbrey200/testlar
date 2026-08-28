@@ -278,12 +278,22 @@ export default function App() {
     await loadAllData();
   };
 
-  // Specific Save Handlers
+  // Specific Save Handlers with Optimistic UI updates
   const handleSaveZayavka = async (zay: Zayavka, auditAction: string, auditDetails: string) => {
+    setZayavki((prev) => {
+      const idx = prev.findIndex((i) => i.id === zay.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = zay;
+        return next;
+      }
+      return [zay, ...prev];
+    });
     await logAndSave('zayavki', zay, auditAction, auditDetails);
   };
 
   const handleDeleteZayavka = async (id: string, details: string) => {
+    setZayavki((prev) => prev.filter((i) => i.id !== id));
     await syncController.deleteItem('zayavki', id);
     if (currentUser) {
       const act: ActivityAudit = {
@@ -303,33 +313,72 @@ export default function App() {
   };
 
   const handleSaveHisobot = async (h: Hisobot, auditAction: string, auditDetails: string) => {
+    setHisobotlar((prev) => {
+      const idx = prev.findIndex((i) => i.id === h.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = h;
+        return next;
+      }
+      return [h, ...prev];
+    });
     await logAndSave('hisobotlar', h, auditAction, auditDetails);
   };
 
   const handleDeleteHisobot = async (id: string, details: string) => {
+    setHisobotlar((prev) => prev.filter((i) => i.id !== id));
     await syncController.deleteItem('hisobotlar', id);
     await loadAllData();
   };
 
   const handleSaveUmm = async (u: UmmZayavka, auditAction: string, auditDetails: string) => {
+    setUmmZayavki((prev) => {
+      const idx = prev.findIndex((i) => i.id === u.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = u;
+        return next;
+      }
+      return [u, ...prev];
+    });
     await logAndSave('ummZayavki', u, auditAction, auditDetails);
   };
 
   const handleDeleteUmm = async (id: string, details: string) => {
+    setUmmZayavki((prev) => prev.filter((i) => i.id !== id));
     await syncController.deleteItem('ummZayavki', id);
     await loadAllData();
   };
 
   const handleSavePmu = async (p: PmuZayavka, auditAction: string, auditDetails: string) => {
+    setPmuZayavki((prev) => {
+      const idx = prev.findIndex((i) => i.id === p.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = p;
+        return next;
+      }
+      return [p, ...prev];
+    });
     await logAndSave('pmuZayavki', p, auditAction, auditDetails);
   };
 
   const handleDeletePmu = async (id: string, details: string) => {
+    setPmuZayavki((prev) => prev.filter((i) => i.id !== id));
     await syncController.deleteItem('pmuZayavki', id);
     await loadAllData();
   };
 
   const handleSaveNakladnoy = async (n: Nakladnoy, auditAction: string, auditDetails: string) => {
+    setNakladnoylar((prev) => {
+      const idx = prev.findIndex((i) => i.id === n.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = n;
+        return next;
+      }
+      return [n, ...prev];
+    });
     await logAndSave('nakladnoylar', n, auditAction, auditDetails);
   };
 

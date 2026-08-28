@@ -14,6 +14,8 @@ import {
   Upload,
   Download,
   AlertCircle,
+  Edit2,
+  Building,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -50,6 +52,11 @@ export default function HisobotlarView({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [printHisobot, setPrintHisobot] = useState<Hisobot | null>(null);
 
+  // Object Change Modal
+  const [isEditObjectOpen, setIsEditObjectOpen] = useState(false);
+  const [targetObjectToChange, setTargetObjectToChange] = useState<Hisobot | null>(null);
+  const [newSelectedObjectId, setNewSelectedObjectId] = useState('');
+
   // New report form state
   const [selectedObjectId, setSelectedObjectId] = useState('');
   const [periodMonth, setPeriodMonth] = useState('2026-08');
@@ -69,17 +76,22 @@ export default function HisobotlarView({
 
   // Check Org visibility rule: Boshqarma employees only see their own org, SO & admin see all
   const isBoshqarma = ['glinj_upr', 'nach_upr', 'pto_upr', 'buh_upr'].includes(currentUser.rol);
+  const canCreate = ['prorab', 'admin', 'pto_upr', 'glinj_upr', 'pto_so', 'nach_upr', 'buh_upr'].includes(currentUser.rol);
 
   const visibleHisobotlar = hisobotlar.filter((h) => {
-    if (isBoshqarma && h.org !== currentUser.org) return false;
-    if (currentUser.rol === 'prorab' && h.prorabId !== currentUser.id && h.org !== currentUser.org) return false;
+    if (isBoshqarma && currentUser.org && h.org && h.org !== currentUser.org) return false;
+    if (currentUser.rol === 'prorab') {
+      const isMine = h.prorabId === currentUser.id || (h.prorabName && h.prorabName.toLowerCase().includes(currentUser.fullName.toLowerCase()));
+      const isSameOrg = currentUser.org && h.org === currentUser.org;
+      if (!isMine && !isSameOrg) return false;
+    }
     if (statusFilter !== 'all' && h.status !== statusFilter) return false;
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.trim().toLowerCase();
       return (
-        h.docNumber.toLowerCase().includes(q) ||
-        h.objectName.toLowerCase().includes(q) ||
-        h.prorabName.toLowerCase().includes(q)
+        h.docNumber?.toLowerCase().includes(q) ||
+        h.objectName?.toLowerCase().includes(q) ||
+        h.prorabName?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -197,11 +209,12 @@ export default function HisobotlarView({
       return;
     }
 
+    const orgToUse = targetObj.org || currentUser.org || 'РМУ';
     const docNum = `ОТЧ-${periodMonth}/${hisobotlar.length + 1}`;
     const newHisobot: Hisobot = {
       id: 'his_' + Date.now(),
       docNumber: docNum,
-      org: currentUser.org,
+      org: orgToUse,
       objectId: targetObj.id,
       objectName: targetObj.name,
       prorabId: currentUser.id,
@@ -284,6 +297,53 @@ export default function HisobotlarView({
     alert('Ҳисобот муваффақиятли расмийлаштирилди (Listed / Проведено)!');
   };
 
+  const canEditObject = (h: Hisobot) => {
+    if (currentUser.rol === 'admin') return true;
+    if (h.status === 'listed') return false;
+    if (currentUser.rol === 'prorab' && (h.prorabId === currentUser.id || h.org === currentUser.org)) return true;
+    if (['glinj_upr', 'nach_upr', 'pto_upr', 'buh_upr', 'pto_so'].includes(currentUser.rol)) return true;
+    return false;
+  };
+
+  const handleOpenChangeObject = (h: Hisobot, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTargetObjectToChange(h);
+    setNewSelectedObjectId(h.objectId || '');
+    setIsEditObjectOpen(true);
+  };
+
+  const handleSaveChangedObject = async () => {
+    if (!targetObjectToChange || !newSelectedObjectId) {
+      alert('Илтимос, қурилиш объектини танланг');
+      return;
+    }
+    const newObj = objects.find((o) => o.id === newSelectedObjectId);
+    if (!newObj) return;
+
+    const oldName = targetObjectToChange.objectName;
+    const updated: Hisobot = {
+      ...targetObjectToChange,
+      objectId: newObj.id,
+      objectName: newObj.name,
+      org: newObj.org || targetObjectToChange.org,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await onSaveHisobot(
+      updated,
+      'hisobot.change_object',
+      `Ҳисобот объекти ўзгартирилди: ${targetObjectToChange.docNumber} ("${oldName}" ➔ "${newObj.name}")`
+    );
+
+    if (selectedHisobot?.id === updated.id) {
+      setSelectedHisobot(updated);
+    }
+    setIsEditObjectOpen(false);
+    setTargetObjectToChange(null);
+    setNewSelectedObjectId('');
+    alert(`Қурилиш объекти муваффақиятли "${newObj.name}" га ўзгартирилди!`);
+  };
+
   const renderStatusBadge = (status: HisobotStatus) => {
     switch (status) {
       case 'new':
@@ -335,7 +395,7 @@ export default function HisobotlarView({
           </p>
         </div>
 
-        {currentUser.rol === 'prorab' && (
+        {canCreate && (
           <button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-purple-700 transition shrink-0"
@@ -412,6 +472,15 @@ export default function HisobotlarView({
                   <td className="px-4 py-3.5">{renderStatusBadge(h.status)}</td>
                   <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
+                      {canEditObject(h) && (
+                        <button
+                          onClick={(e) => handleOpenChangeObject(h, e)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-purple-600 transition"
+                          title="Объектни ўзгартириш"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleExcelExport(h)}
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 transition"
@@ -711,6 +780,46 @@ export default function HisobotlarView({
 
             {/* Content Table */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Document Overview with Object Change Action */}
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Бошқарма</span>
+                    <p className="font-semibold text-slate-800">{selectedHisobot.org}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Масъул Прораб</span>
+                    <p className="font-semibold text-slate-800">{selectedHisobot.prorabName}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Ҳисобот Даври</span>
+                    <p className="font-semibold text-purple-700">{selectedHisobot.periodMonth}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Бириктирилган Қурилиш Объекти</span>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm mt-0.5">
+                      <Building className="h-4 w-4 text-purple-600 shrink-0" />
+                      <span>{selectedHisobot.objectName}</span>
+                      <span className="text-xs font-normal text-slate-500">({selectedHisobot.org})</span>
+                    </div>
+                  </div>
+
+                  {canEditObject(selectedHisobot) && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenChangeObject(selectedHisobot)}
+                      className="flex items-center gap-1.5 rounded-xl bg-purple-50 border border-purple-200 px-3.5 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition shadow-2xs"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span>Объектни ўзгартириш</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Steps & Digital Signatures Box */}
               <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
                 <h4 className="text-xs font-bold uppercase text-slate-500 mb-3">
@@ -910,6 +1019,69 @@ export default function HisobotlarView({
                     </button>
                   )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE OBJECT MODAL */}
+      {isEditObjectOpen && targetObjectToChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Building className="h-5 w-5 text-purple-600" />
+                <span>Ҳисобот қурилиш объектини ўзгартириш</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <p className="text-slate-500">Ҳужжат: <strong className="text-slate-900">{targetObjectToChange.docNumber}</strong></p>
+                <p className="text-slate-500 mt-1">Ҳозирги объект: <strong className="text-purple-700">{targetObjectToChange.objectName}</strong> ({targetObjectToChange.org})</p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] uppercase font-bold text-slate-600 mb-1.5">
+                  Янги қурилиш объектини танланг *
+                </label>
+                <select
+                  value={newSelectedObjectId}
+                  onChange={(e) => setNewSelectedObjectId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-semibold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                >
+                  <option value="">-- Янги объектни танланг --</option>
+                  {objects.map((obj) => (
+                    <option key={obj.id} value={obj.id}>
+                      {obj.name} ({obj.org})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsEditObjectOpen(false)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Бекор қилиш
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveChangedObject}
+                className="rounded-xl bg-purple-600 px-5 py-2 text-xs font-bold text-white hover:bg-purple-700 shadow-md transition"
+              >
+                Сақлаш ва ўзгартириш
+              </button>
             </div>
           </div>
         </div>
